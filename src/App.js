@@ -11,6 +11,7 @@ import DashboardPage from "./pages/DashboardPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import UserManagementPage from "./pages/UserManagementPage";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+        <Route path="/admin/users" element={<UserManagementPage />} />
         <Route path="/register" element={<UserRegisterPage />} />
         <Route path="/login" element={<UserLoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
