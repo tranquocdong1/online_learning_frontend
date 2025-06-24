@@ -11,14 +11,22 @@ import React from 'react';
                    Admin Dashboard
                </Typography>
                <Typography gutterBottom>Welcome to the admin panel!</Typography>
-               <Button
-                   variant="contained"
-                   color="primary"
-                   onClick={() => navigate('/admin/users')}
-                   sx={{ mt: 2 }}
-               >
-                   Manage Users
-               </Button>
+               <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                   <Button
+                       variant="contained"
+                       color="primary"
+                       onClick={() => navigate('/admin/users')}
+                   >
+                       Manage Users
+                   </Button>
+                   <Button
+                       variant="contained"
+                       color="primary"
+                       onClick={() => navigate('/admin/categories')}
+                   >
+                       Manage Categories
+                   </Button>
+               </Box>
            </Box>
        );
    };
