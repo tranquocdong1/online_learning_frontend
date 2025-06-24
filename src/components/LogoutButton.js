@@ -9,12 +9,43 @@ const LogoutButton = () => {
 
   const handleLogout = async () => {
     try {
-      await api.post('/auth/logout');
-      localStorage.removeItem('token');
-      toast.success('Logged out successfully');
-      navigate('/login');
+      // Xác định role dựa trên URL hiện tại hoặc token
+      const currentPath = window.location.pathname;
+      const adminToken = localStorage.getItem('accessToken');
+      const userToken = localStorage.getItem('token');
+      
+      if (currentPath.startsWith('/admin') || adminToken) {
+        // Admin logout
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        toast.success('Admin logged out successfully');
+        navigate('/admin/login');
+      } else if (userToken) {
+        // User logout - gọi API logout
+        try {
+          await api.post('/auth/logout');
+          localStorage.removeItem('token');
+          toast.success('Logged out successfully');
+          navigate('/login');
+        } catch (error) {
+          // Nếu API thất bại, vẫn xóa token
+          console.error('Logout API failed:', error);
+          localStorage.removeItem('token');
+          toast.success('Logged out successfully');
+          navigate('/login');
+        }
+      } else {
+        // Không có token, redirect về login
+        navigate('/login');
+      }
     } catch (error) {
-      toast.error('Logout failed');
+      console.error('Logout error:', error);
+      // Cleanup tất cả token
+      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      toast.error('Logout completed');
+      navigate('/login');
     }
   };
 
