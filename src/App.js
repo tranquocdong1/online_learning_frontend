@@ -14,6 +14,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import CategoryManagementPage from "./pages/CategoryManagementPage";
 import CourseManagementPage from "./pages/CourseManagementPage";
+import CourseContentPage from "./pages/CourseContentPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/admin/users" element={<UserManagementPage />} />
         <Route path="/admin/categories" element={<CategoryManagementPage />} />
         <Route path="/admin/courses" element={<CourseManagementPage />} />
+        <Route path="/admin/courses/:courseId/content" element={<CourseContentPage />} />
         <Route path="/register" element={<UserRegisterPage />} />
         <Route path="/login" element={<UserLoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
