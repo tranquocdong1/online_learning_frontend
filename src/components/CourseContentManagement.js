@@ -220,7 +220,8 @@ const CourseContentManagement = () => {
                   {chapter.lessons.map((lesson) => (
                     <TableRow key={lesson.id}>
                       <TableCell>{lesson.title}</TableCell>
-                      <TableCell>{lesson.order}</TableCell>
+                      <TableCell>{lesson.order_number || "-"}</TableCell>{" "}
+                      {/* Sửa từ lesson.order thành lesson.order_number */}
                       <TableCell>
                         {lesson.video_url ? (
                           <a
