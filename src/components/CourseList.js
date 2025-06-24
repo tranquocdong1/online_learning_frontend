@@ -51,6 +51,7 @@ const CourseList = () => {
       const response = await api.get("/admin/courses", {
         params: { page: currentPage, limit },
       });
+      console.log('API response:', response.data);
       setCourses(response.data.data);
       setTotalPages(response.data.pages);
     } catch (error) {
@@ -126,6 +127,7 @@ const CourseList = () => {
       formDataToSend.append("title", formData.title);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("category_id", formData.category_id);
+      console.log('FormData status:', formData.status);
       formDataToSend.append("status", formData.status);
       if (formData.thumbnail) {
         formDataToSend.append("thumbnail", formData.thumbnail);
@@ -311,7 +313,7 @@ const CourseList = () => {
                   label="Status"
                 >
                   <MenuItem value="active">Active</MenuItem>
-                  <MenuItem value="inactive">Inactive</MenuItem>
+                  <MenuItem value="hidden">Hidden</MenuItem>
                 </Select>
               </FormControl>
               <Button variant="contained" component="label" sx={{ mt: 2 }}>
