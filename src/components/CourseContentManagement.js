@@ -34,7 +34,7 @@ const CourseContentManagement = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
-    oder_number: 1,
+    order_number: 1,
     video: null,
   });
 
@@ -65,8 +65,12 @@ const CourseContentManagement = () => {
     setSelectedItem({ ...item, type });
     setFormData(
       item
-        ? { title: item.title, oder_number: item.oder_number, video: null }
-        : { title: "", oder_number: 1, video: null }
+        ? {
+            title: item.title,
+            order_number: item.order_number || 1,
+            video: null,
+          }
+        : { title: "", order_number: 1, video: null }
     );
     setOpenDialog(true);
   };
@@ -75,7 +79,7 @@ const CourseContentManagement = () => {
     setOpenDialog(false);
     setSelectedItem(null);
     setDialogAction("");
-    setFormData({ title: "", oder_number: 1, video: null });
+    setFormData({ title: "", order_number: 1, video: null });
   };
 
   const handleFormChange = (e) => {
@@ -89,15 +93,25 @@ const CourseContentManagement = () => {
   const handleSubmit = async () => {
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("title", formData.title);
-      formDataToSend.append("oder_number", formData.oder_number);
+      formDataToSend.append("title", formData.title.trim());
+      formDataToSend.append("order_number", formData.order_number);
+
       if (formData.video) {
         formDataToSend.append("video", formData.video);
       }
 
+      // Debug dữ liệu gửi đi
+      for (let pair of formDataToSend.entries()) {
+        console.log("FormData sent:", pair[0] + ": " + pair[1]);
+      }
+
       if (selectedItem?.type === "chapter") {
         if (dialogAction === "create") {
-          await api.post(`/admin/courses/${courseId}/chapters`, formDataToSend);
+          const response = await api.post(
+            `/admin/courses/${courseId}/chapters`,
+            formDataToSend
+          );
+          console.log("Response from server:", response.data);
           toast.success("Chapter created successfully");
         } else if (dialogAction === "edit") {
           await api.put(
@@ -115,19 +129,13 @@ const CourseContentManagement = () => {
         if (dialogAction === "create") {
           await api.post(
             `/admin/chapters/${selectedItem.chapterId}/lessons`,
-            formDataToSend,
-            {
-              headers: { "Content-Type": "multipart/form-data" },
-            }
+            formDataToSend
           );
           toast.success("Lesson created successfully");
         } else if (dialogAction === "edit") {
           await api.put(
             `/admin/chapters/${selectedItem.chapterId}/lessons/${selectedItem.id}`,
-            formDataToSend,
-            {
-              headers: { "Content-Type": "multipart/form-data" },
-            }
+            formDataToSend
           );
           toast.success("Lesson updated successfully");
         } else if (dialogAction === "delete") {
@@ -141,6 +149,7 @@ const CourseContentManagement = () => {
       handleCloseDialog();
     } catch (error) {
       toast.error(error.response?.data?.message || "Action failed");
+      console.error("Error details:", error.response?.data);
     }
   };
 
@@ -211,7 +220,7 @@ const CourseContentManagement = () => {
                   {chapter.lessons.map((lesson) => (
                     <TableRow key={lesson.id}>
                       <TableCell>{lesson.title}</TableCell>
-                      <TableCell>{lesson.oder_number}</TableCell>
+                      <TableCell>{lesson.order}</TableCell>
                       <TableCell>
                         {lesson.video_url ? (
                           <a
@@ -290,9 +299,9 @@ const CourseContentManagement = () => {
               />
               <TextField
                 label="Order"
-                name="oder_number"
+                name="order_number"
                 type="number"
-                value={formData.oder_number}
+                value={formData.order_number}
                 onChange={handleFormChange}
                 required
                 fullWidth
