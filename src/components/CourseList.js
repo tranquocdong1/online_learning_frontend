@@ -251,17 +251,7 @@ const CourseList = () => {
               ? "Edit Course"
               : "Delete Course"}
         </DialogTitle>
-        <DialogContent
-          sx={{
-            pt: 3,
-            pb: 3,
-            pl: 3,
-            pr: 3,
-            overflowY: "auto",
-            position: "relative",
-            zIndex: 1300,
-          }}
-        >
+        <DialogContent sx={{ pt: 3, pb: 3, pl: 3, pr: 3, overflowY: "auto" }}>
           {dialogAction === "delete" ? (
             <DialogContentText>
               Are you sure you want to delete the course "
@@ -294,12 +284,11 @@ const CourseList = () => {
                 <InputLabel id="category-label">Category</InputLabel>
                 <Select
                   labelId="category-label"
-                  id="category_id"
                   name="category_id"
                   value={formData.category_id}
                   onChange={handleFormChange}
                   required
-                  label="Category" // ✅ giúp label co lại đúng
+                  label="Category"
                 >
                   <MenuItem value="">
                     <em>Select Category</em>
@@ -311,23 +300,20 @@ const CourseList = () => {
                   ))}
                 </Select>
               </FormControl>
-
               <FormControl fullWidth margin="normal" sx={{ mt: 2 }}>
                 <InputLabel id="status-label">Status</InputLabel>
                 <Select
                   labelId="status-label"
-                  id="status"
                   name="status"
                   value={formData.status}
                   onChange={handleFormChange}
                   required
-                  label="Status" // ✅ giúp label co lại đúng
+                  label="Status"
                 >
                   <MenuItem value="active">Active</MenuItem>
                   <MenuItem value="inactive">Inactive</MenuItem>
                 </Select>
               </FormControl>
-
               <Button variant="contained" component="label" sx={{ mt: 2 }}>
                 Upload Thumbnail
                 <input
