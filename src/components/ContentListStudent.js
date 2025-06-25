@@ -198,6 +198,18 @@ const ContentListStudent = () => {
     }
   };
 
+  const handleRateLesson = async (lessonId, newRating) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        await api.put(`/api/lessons/${lessonId}/ratings`, { rating: newRating });
+        fetchRatings(); // Cập nhật lại trung bình sao
+      }
+    } catch (error) {
+      console.error("Error rating lesson:", error);
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>
