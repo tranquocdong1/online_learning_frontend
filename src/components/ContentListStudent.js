@@ -8,10 +8,15 @@ import {
   Collapse,
   Divider,
   Button,
+  TextField,
+  ListItemSecondaryAction,
+  IconButton,
   Rating,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const ContentListStudent = () => {
   const { courseId } = useParams();
@@ -20,13 +25,18 @@ const ContentListStudent = () => {
   const [lessonsByChapter, setLessonsByChapter] = useState({});
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [progress, setProgress] = useState({});
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [editingComment, setEditingComment] = useState(null);
+  const [editContent, setEditContent] = useState("");
   const [ratings, setRatings] = useState({});
 
   useEffect(() => {
     fetchChapters();
     fetchProgress();
+    if (selectedLesson) fetchComments(selectedLesson.id);
     fetchRatings();
-  }, [courseId]);
+  }, [courseId, selectedLesson]);
 
   const fetchChapters = async () => {
     try {
@@ -52,7 +62,7 @@ const ContentListStudent = () => {
 
   const fetchProgress = async () => {
     try {
-      const userId = localStorage.getItem('userId');
+      const userId = localStorage.getItem("userId");
       if (userId) {
         const response = await api.get(`/api/users/${userId}/progress`);
         const progressData = {};
@@ -63,6 +73,15 @@ const ContentListStudent = () => {
       }
     } catch (error) {
       console.error("Error loading progress:", error);
+    }
+  };
+
+  const fetchComments = async (lessonId) => {
+    try {
+      const response = await api.get(`/api/lessons/${lessonId}/comments`);
+      setComments(response.data.data || []); // Đảm bảo không lỗi nếu không có data
+    } catch (error) {
+      console.error("Error loading comments:", error);
     }
   };
 
@@ -95,6 +114,7 @@ const ContentListStudent = () => {
     try {
       const res = await api.get(`/api/lessons/${lessonId}`);
       setSelectedLesson(res.data);
+      fetchComments(lessonId);
     } catch (error) {
       console.error("Error loading lesson:", error);
     }
@@ -102,12 +122,12 @@ const ContentListStudent = () => {
 
   const handleUpdateProgress = async (lessonId, currentStatus) => {
     try {
-      const userId = localStorage.getItem('userId');
+      const userId = localStorage.getItem("userId");
       if (userId) {
         let newStatus;
-        if (currentStatus === 'not_started') newStatus = 'in_progress';
-        else if (currentStatus === 'in_progress') newStatus = 'completed';
-        else newStatus = 'not_started';
+        if (currentStatus === "not_started") newStatus = "in_progress";
+        else if (currentStatus === "in_progress") newStatus = "completed";
+        else newStatus = "not_started";
 
         await api.put(`/api/users/${userId}/lessons/${lessonId}/progress`, {
           status: newStatus,
@@ -123,15 +143,58 @@ const ContentListStudent = () => {
     }
   };
 
-  const handleRateLesson = async (lessonId, newRating) => {
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
     try {
-      const userId = localStorage.getItem('userId');
-      if (userId) {
-        await api.put(`/api/lessons/${lessonId}/ratings`, { rating: newRating });
-        fetchRatings(); // Cập nhật lại trung bình sao
+      const userId = localStorage.getItem("userId");
+      if (userId && selectedLesson) {
+        await api.post(`/api/lessons/${selectedLesson.id}/comments`, {
+          content: newComment,
+        });
+        setNewComment("");
+        fetchComments(selectedLesson.id);
       }
     } catch (error) {
-      console.error("Error rating lesson:", error);
+      console.error("Error adding comment:", error);
+    }
+  };
+
+  const handleEditComment = (comment) => {
+    setEditingComment(comment.id);
+    setEditContent(comment.content);
+  };
+
+  const handleUpdateComment = async (e) => {
+    e.preventDefault();
+    if (!editContent.trim()) return;
+    try {
+      const userId = localStorage.getItem("userId");
+      if (userId && selectedLesson) {
+        await api.put(
+          `/api/lessons/${selectedLesson.id}/comments/${editingComment}`,
+          { content: editContent }
+        );
+        setEditingComment(null);
+        setEditContent("");
+        fetchComments(selectedLesson.id);
+      }
+    } catch (error) {
+      console.error("Error updating comment:", error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (userId && selectedLesson) {
+        await api.delete(
+          `/api/lessons/${selectedLesson.id}/comments/${commentId}`
+        );
+        fetchComments(selectedLesson.id);
+      }
+    } catch (error) {
+      console.error("Error deleting comment:", error);
     }
   };
 
@@ -160,8 +223,11 @@ const ContentListStudent = () => {
                     onClick={() => handleLessonClick(lesson.id)}
                     sx={{
                       background:
-                        progress[lesson.id] === 'completed' ? "#e0f7fa" :
-                        progress[lesson.id] === 'in_progress' ? "#fff3e0" : "inherit",
+                        progress[lesson.id] === "completed"
+                          ? "#e0f7fa"
+                          : progress[lesson.id] === "in_progress"
+                          ? "#fff3e0"
+                          : "inherit",
                     }}
                   >
                     <ListItemText
@@ -170,8 +236,11 @@ const ContentListStudent = () => {
                     <Button
                       variant="contained"
                       color={
-                        progress[lesson.id] === 'completed' ? "secondary" :
-                        progress[lesson.id] === 'in_progress' ? "warning" : "primary"
+                        progress[lesson.id] === "completed"
+                          ? "secondary"
+                          : progress[lesson.id] === "in_progress"
+                          ? "warning"
+                          : "primary"
                       }
                       onClick={(e) => {
                         e.stopPropagation();
@@ -179,8 +248,11 @@ const ContentListStudent = () => {
                       }}
                       size="small"
                     >
-                      {progress[lesson.id] === 'completed' ? 'Hoàn thành' :
-                       progress[lesson.id] === 'in_progress' ? 'Đang học' : 'Bắt đầu'}
+                      {progress[lesson.id] === "completed"
+                        ? "Hoàn thành"
+                        : progress[lesson.id] === "in_progress"
+                        ? "Đang học"
+                        : "Bắt đầu"}
                     </Button>
                     <Rating
                       name={`rating-${lesson.id}`}
@@ -209,8 +281,80 @@ const ContentListStudent = () => {
               style={{ width: "100%", marginTop: "10px" }}
             />
           ) : (
-            <Typography color="text.secondary">Không có video</Typography>
+            <Typography color="text.secondary">
+              Không có video
+            </Typography>
           )}
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="h6">Bình luận</Typography>
+            <form onSubmit={handleAddComment}>
+              <TextField
+                fullWidth
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Viết bình luận..."
+                sx={{ mb: 2 }}
+              />
+              <Button type="submit" variant="contained" color="primary">
+                Gửi
+              </Button>
+            </form>
+            <List>
+              {comments.map((comment) => (
+                <ListItem key={comment.id}>
+                  <ListItemText
+                    primary={comment.User?.username || "Anonymous"}
+                    secondary={
+                      editingComment === comment.id ? (
+                        <form onSubmit={handleUpdateComment}>
+                          <TextField
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            fullWidth
+                            sx={{ mb: 1 }}
+                          />
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                          >
+                            Lưu
+                          </Button>
+                          <Button
+                            onClick={() => setEditingComment(null)}
+                            color="secondary"
+                            size="small"
+                          >
+                            Hủy
+                          </Button>
+                        </form>
+                      ) : (
+                        comment.content
+                      )
+                    }
+                  />
+                  {comment.user_id ===
+                    parseInt(localStorage.getItem("userId")) && (
+                    <ListItemSecondaryAction>
+                      <IconButton
+                        onClick={() => handleEditComment(comment)}
+                        edge="end"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDeleteComment(comment.id)}
+                        edge="end"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  )}
+                </ListItem>
+              ))}
+            </List>
+          </Box>
         </Box>
       )}
     </Box>
