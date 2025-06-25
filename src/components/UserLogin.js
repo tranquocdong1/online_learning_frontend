@@ -3,9 +3,9 @@ import { TextField, Button, Box, Typography, Container } from '@mui/material';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // ✅ ĐÚNG
 
 const UserLogin = () => {
-  // Đảm bảo state khởi tạo hoàn toàn trống
   const [formData, setFormData] = useState({ email: '', password: '' });
   const navigate = useNavigate();
 
@@ -17,7 +17,13 @@ const UserLogin = () => {
     e.preventDefault();
     try {
       const response = await api.post('/auth/login', formData);
-      localStorage.setItem('token', response.data.token);
+      const token = response.data.token;
+      localStorage.setItem('token', token); // Lưu token
+
+      // Giải mã token để lấy userId
+      const decodedToken = jwtDecode(token);
+      localStorage.setItem('userId', decodedToken.id); // Lưu userId từ token
+
       toast.success('Login successful');
       navigate('/dashboard');
     } catch (error) {
@@ -30,7 +36,7 @@ const UserLogin = () => {
       <Box
         component="form"
         onSubmit={handleSubmit}
-        autoComplete="off" // Tắt autocomplete
+        autoComplete="off"
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -53,10 +59,10 @@ const UserLogin = () => {
           onChange={handleChange}
           required
           fullWidth
-          autoComplete="new-email" // Ngăn autofill
+          autoComplete="new-email"
           InputProps={{
             sx: {
-              backgroundColor: 'white', // Đảm bảo background trắng
+              backgroundColor: 'white',
               '& input': {
                 backgroundColor: 'transparent !important',
                 '&:-webkit-autofill': {
@@ -75,7 +81,7 @@ const UserLogin = () => {
           onChange={handleChange}
           required
           fullWidth
-          autoComplete="new-password" // Ngăn autofill
+          autoComplete="new-password"
           InputProps={{
             sx: {
               backgroundColor: 'white',
@@ -105,7 +111,7 @@ const UserLogin = () => {
           color="secondary"
           sx={{ textTransform: 'uppercase' }}
         >
-          Don&apos;t have an account? Register
+          Don't have an account? Register
         </Button>
       </Box>
     </Container>
