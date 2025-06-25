@@ -11,6 +11,7 @@ import {
   TextField,
   ListItemSecondaryAction,
   IconButton,
+  Rating,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
@@ -28,11 +29,13 @@ const ContentListStudent = () => {
   const [newComment, setNewComment] = useState("");
   const [editingComment, setEditingComment] = useState(null);
   const [editContent, setEditContent] = useState("");
+  const [ratings, setRatings] = useState({});
 
   useEffect(() => {
     fetchChapters();
     fetchProgress();
     if (selectedLesson) fetchComments(selectedLesson.id);
+    fetchRatings();
   }, [courseId, selectedLesson]);
 
   const fetchChapters = async () => {
@@ -79,6 +82,27 @@ const ContentListStudent = () => {
       setComments(response.data.data || []); // Đảm bảo không lỗi nếu không có data
     } catch (error) {
       console.error("Error loading comments:", error);
+    }
+  };
+
+  const fetchRatings = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        const lessons = Object.values(lessonsByChapter).flat();
+        const ratingPromises = lessons.map((lesson) =>
+          api.get(`/api/lessons/${lesson.id}/ratings`).then((res) => ({
+            lessonId: lesson.id,
+            averageRating: res.data.averageRating,
+          }))
+        );
+        const ratingsData = await Promise.all(ratingPromises);
+        const ratingsObj = {};
+        ratingsData.forEach((r) => (ratingsObj[r.lessonId] = r.averageRating));
+        setRatings(ratingsObj);
+      }
+    } catch (error) {
+      console.error("Error loading ratings:", error);
     }
   };
 
@@ -188,15 +212,9 @@ const ContentListStudent = () => {
               onClick={() => handleChapterClick(chapter.id)}
               sx={{ background: "#f5f5f5", mb: 1 }}
             >
-              <ListItemText
-                primary={`Chương ${chapter.order_number}: ${chapter.title}`}
-              />
+              <ListItemText primary={`Chương ${chapter.order_number}: ${chapter.title}`} />
             </ListItem>
-            <Collapse
-              in={!!lessonsByChapter[chapter.id]}
-              timeout="auto"
-              unmountOnExit
-            >
+            <Collapse in={!!lessonsByChapter[chapter.id]} timeout="auto" unmountOnExit>
               <List component="div" disablePadding sx={{ pl: 3 }}>
                 {lessonsByChapter[chapter.id]?.map((lesson) => (
                   <ListItem
@@ -226,10 +244,7 @@ const ContentListStudent = () => {
                       }
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleUpdateProgress(
-                          lesson.id,
-                          progress[lesson.id] || "not_started"
-                        );
+                        handleUpdateProgress(lesson.id, progress[lesson.id] || 'not_started');
                       }}
                       size="small"
                     >
@@ -239,6 +254,15 @@ const ContentListStudent = () => {
                         ? "Đang học"
                         : "Bắt đầu"}
                     </Button>
+                    <Rating
+                      name={`rating-${lesson.id}`}
+                      value={ratings[lesson.id] || 0}
+                      precision={0.5}
+                      onChange={(event, newValue) => {
+                        if (newValue) handleRateLesson(lesson.id, newValue);
+                      }}
+                      readOnly={!progress[lesson.id] === 'completed'} // Chỉ cho phép đánh giá khi hoàn thành
+                    />
                   </ListItem>
                 ))}
               </List>
