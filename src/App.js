@@ -16,6 +16,7 @@ import CategoryManagementPage from "./pages/CategoryManagementPage";
 import CourseManagementPage from "./pages/CourseManagementPage";
 import CourseContentPage from "./pages/CourseContentPage";
 import CourseListStudent from "./components/CourseListStudent";
+import ContentListStudent from "./components/ContentListStudent";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/admin/courses" element={<CourseManagementPage />} />
         <Route path="/admin/courses/:courseId/content" element={<CourseContentPage />} />
         <Route path="/courses" element={<CourseListStudent />} />
+        <Route path="/courses/:courseId/content" element={<ContentListStudent />} />
         <Route path="/register" element={<UserRegisterPage />} />
         <Route path="/login" element={<UserLoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
