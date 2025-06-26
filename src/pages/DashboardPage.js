@@ -8,24 +8,24 @@ import CategoryListStudent from '../components/CategoryListStudent';
 const DashboardPage = () => {
   const menuItems = [
     {
-      title: 'View/Edit Profile',
-      description: 'Manage your personal information and settings',
+      title: 'Xem/Chỉnh sửa Hồ sơ', // Changed from 'View/Edit Profile'
+      description: 'Quản lý thông tin cá nhân và cài đặt của bạn', // Changed from 'Manage your personal information and settings'
       path: '/profile',
       icon: <Person sx={{ fontSize: 32 }} />,
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       hoverShadow: '0 20px 40px rgba(102, 126, 234, 0.3)'
     },
     {
-      title: 'Change Password',
-      description: 'Update your account security credentials',
+      title: 'Đổi mật khẩu', // Changed from 'Change Password'
+      description: 'Cập nhật thông tin bảo mật tài khoản của bạn', // Changed from 'Update your account security credentials'
       path: '/change-password',
       icon: <Lock sx={{ fontSize: 32 }} />,
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       hoverShadow: '0 20px 40px rgba(240, 147, 251, 0.3)'
     },
     {
-      title: 'Khám phá và tham gia khóa học',
-      description: 'Discover new learning opportunities and join courses',
+      title: 'Khám phá các khóa học', // Changed from 'Explore and join courses'
+      description: 'Khám phá và tham gia các khóa học', // Changed from 'Discover learning opportunities, join courses'
       path: '/courses',
       icon: <School sx={{ fontSize: 32 }} />,
       gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
@@ -34,15 +34,15 @@ const DashboardPage = () => {
   ];
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
+    <Box sx={{
+      minHeight: '100vh',
       background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
       py: 4
     }}>
       <Container maxWidth="lg">
         {/* Header Section */}
-        <Box sx={{ 
-          textAlign: 'center', 
+        <Box sx={{
+          textAlign: 'center',
           mb: 6,
           position: 'relative'
         }}>
@@ -87,9 +87,9 @@ const DashboardPage = () => {
               },
             }} />
           </Box>
-          
-          <Typography 
-            variant="h3" 
+
+          <Typography
+            variant="h3"
             sx={{
               fontWeight: 700,
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -110,19 +110,19 @@ const DashboardPage = () => {
               },
             }}
           >
-            Welcome to Your Dashboard
+            Chào mừng đến với Bảng điều khiển của bạn
           </Typography>
-          
-          <Typography 
-            variant="h6" 
-            sx={{ 
+
+          <Typography
+            variant="h6"
+            sx={{
               color: 'text.secondary',
               maxWidth: 600,
               mx: 'auto',
               animation: 'fadeInUp 1s ease-out 0.2s both',
             }}
           >
-            Manage your learning journey and explore new opportunities with our comprehensive platform
+            Quản lý hành trình học tập và khám phá các cơ hội mới với nền tảng toàn diện của chúng tôi
           </Typography>
         </Box>
 
@@ -163,7 +163,7 @@ const DashboardPage = () => {
                   }
                 }
               }}>
-                <Box 
+                <Box
                   className="card-bg"
                   sx={{
                     position: 'absolute',
@@ -176,14 +176,14 @@ const DashboardPage = () => {
                     transition: 'all 0.3s ease',
                   }}
                 />
-                
-                <CardContent sx={{ 
-                  p: 4, 
+
+                <CardContent sx={{
+                  p: 4,
                   textAlign: 'center',
                   position: 'relative',
                   zIndex: 1
                 }}>
-                  <Box 
+                  <Box
                     className="card-icon"
                     sx={{
                       display: 'inline-flex',
@@ -201,23 +201,23 @@ const DashboardPage = () => {
                   >
                     {item.icon}
                   </Box>
-                  
-                  <Typography variant="h6" sx={{ 
-                    fontWeight: 600, 
+
+                  <Typography variant="h6" sx={{
+                    fontWeight: 600,
                     mb: 2,
                     color: 'text.primary'
                   }}>
                     {item.title}
                   </Typography>
-                  
-                  <Typography variant="body2" sx={{ 
+
+                  <Typography variant="body2" sx={{
                     color: 'text.secondary',
                     mb: 3,
                     lineHeight: 1.6
                   }}>
                     {item.description}
                   </Typography>
-                  
+
                   <Button
                     variant="contained"
                     component={Link}
@@ -240,7 +240,7 @@ const DashboardPage = () => {
                       }
                     }}
                   >
-                    Get Started
+                    Bắt đầu
                   </Button>
                 </CardContent>
 
@@ -265,8 +265,8 @@ const DashboardPage = () => {
         </Grid>
 
         {/* Logout Section */}
-        <Box sx={{ 
-          textAlign: 'center', 
+        <Box sx={{
+          textAlign: 'center',
           mb: 6,
           animation: 'fadeIn 1s ease-out 0.8s both',
           '@keyframes fadeIn': {
@@ -300,16 +300,16 @@ const DashboardPage = () => {
           p: 4,
           animation: 'slideInUp 0.8s ease-out 0.6s both',
         }}>
-          <Typography 
-            variant="h5" 
-            sx={{ 
+          <Typography
+            variant="h5"
+            sx={{
               textAlign: 'center',
               mb: 4,
               fontWeight: 600,
               color: 'text.primary'
             }}
           >
-            Course Categories
+            Danh mục khóa học
           </Typography>
           <CategoryListStudent />
         </Box>
