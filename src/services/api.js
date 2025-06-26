@@ -26,20 +26,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle token refresh
+// Handle token refresh - CHỈ XỬ LÝ REFRESH TOKEN, KHÔNG REDIRECT
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
     
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    // CHỈ XỬ LÝ REFRESH TOKEN CHO ADMIN KHI CÓ REFRESH TOKEN
+    if (error.response && 
+        error.response.status === 401 && 
+        !originalRequest._retry &&
+        originalRequest.url.startsWith('/admin')) {
       
-      // Kiểm tra xem có refresh token không (chỉ admin mới có)
+      originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refreshToken');
       
       if (refreshToken) {
-        // Đây là admin, thử refresh token
         try {
           const response = await axios.post(
             `${process.env.REACT_APP_API_URL}/admin/refresh-token`,
@@ -50,20 +52,15 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return api(originalRequest);
         } catch (refreshError) {
-          // Refresh thất bại, xóa token và redirect
+          // Chỉ xóa token, KHÔNG redirect
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
-          window.location.href = '/admin/login';
           return Promise.reject(refreshError);
         }
-      } else {
-        // Đây là user, xóa token và redirect
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-        return Promise.reject(error);
       }
     }
     
+    // LUÔN REJECT ERROR ĐỂ COMPONENT XỬ LÝ
     return Promise.reject(error);
   }
 );
