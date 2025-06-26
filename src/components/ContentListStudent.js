@@ -12,6 +12,8 @@ import {
   ListItemSecondaryAction,
   IconButton,
   Rating,
+  ListItemAvatar,
+  Avatar,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
@@ -30,11 +32,15 @@ const ContentListStudent = () => {
   const [editingComment, setEditingComment] = useState(null);
   const [editContent, setEditContent] = useState("");
   const [ratings, setRatings] = useState({});
+  const [ratingsList, setRatingsList] = useState({});
 
   useEffect(() => {
     fetchChapters();
     fetchProgress();
-    if (selectedLesson) fetchComments(selectedLesson.id);
+    if (selectedLesson) {
+      fetchComments(selectedLesson.id);
+      fetchRatingsLists(selectedLesson.id);
+    }
     fetchRatings();
   }, [courseId, selectedLesson]);
 
@@ -87,7 +93,7 @@ const ContentListStudent = () => {
 
   const fetchRatings = async () => {
     try {
-      const userId = localStorage.getItem('userId');
+      const userId = localStorage.getItem("userId");
       if (userId) {
         const lessons = Object.values(lessonsByChapter).flat();
         const ratingPromises = lessons.map((lesson) =>
@@ -106,6 +112,18 @@ const ContentListStudent = () => {
     }
   };
 
+  const fetchRatingsLists = async (lessonId) => {
+    try {
+      const response = await api.get(`/api/lessons/${lessonId}/ratings/list`);
+      setRatingsList((prev) => ({
+        ...prev,
+        [lessonId]: response.data.ratings,
+      }));
+    } catch (error) {
+      console.error("Error loading ratings list:", error);
+    }
+  };
+
   const handleChapterClick = (chapterId) => {
     fetchLessons(chapterId);
   };
@@ -115,6 +133,7 @@ const ContentListStudent = () => {
       const res = await api.get(`/api/lessons/${lessonId}`);
       setSelectedLesson(res.data);
       fetchComments(lessonId);
+      fetchRatingsLists(lessonId);
     } catch (error) {
       console.error("Error loading lesson:", error);
     }
@@ -200,10 +219,11 @@ const ContentListStudent = () => {
 
   const handleRateLesson = async (lessonId, newRating) => {
     try {
-      const userId = localStorage.getItem('userId');
+      const userId = localStorage.getItem("userId");
       if (userId) {
         await api.put(`/api/lessons/${lessonId}/ratings`, { rating: newRating });
         fetchRatings(); // Cập nhật lại trung bình sao
+        fetchRatingsLists(lessonId); // Cập nhật danh sách đánh giá
       }
     } catch (error) {
       console.error("Error rating lesson:", error);
@@ -256,7 +276,7 @@ const ContentListStudent = () => {
                       }
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleUpdateProgress(lesson.id, progress[lesson.id] || 'not_started');
+                        handleUpdateProgress(lesson.id, progress[lesson.id] || "not_started");
                       }}
                       size="small"
                     >
@@ -273,7 +293,7 @@ const ContentListStudent = () => {
                       onChange={(event, newValue) => {
                         if (newValue) handleRateLesson(lesson.id, newValue);
                       }}
-                      readOnly={!progress[lesson.id] === 'completed'} // Chỉ cho phép đánh giá khi hoàn thành
+                      readOnly={!progress[lesson.id] === "completed"} // Chỉ cho phép đánh giá khi hoàn thành
                     />
                   </ListItem>
                 ))}
@@ -297,6 +317,26 @@ const ContentListStudent = () => {
               Không có video
             </Typography>
           )}
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="h6">Đánh giá từ người dùng</Typography>
+            {ratingsList[selectedLesson.id] && ratingsList[selectedLesson.id].length > 0 ? (
+              <List>
+                {ratingsList[selectedLesson.id].map((rating) => (
+                  <ListItem key={rating.id}>
+                    <ListItemAvatar>
+                      <Avatar>{rating.User?.username?.charAt(0) || "?"}</Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={`${rating.User?.username || "Ẩn danh"} - ${rating.rating} sao`}
+                      secondary={`Vào ${new Date(rating.created_at).toLocaleDateString()}`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography color="text.secondary">Chưa có đánh giá nào.</Typography>
+            )}
+          </Box>
           <Box sx={{ mt: 2 }}>
             <Typography variant="h6">Bình luận</Typography>
             <form onSubmit={handleAddComment}>
