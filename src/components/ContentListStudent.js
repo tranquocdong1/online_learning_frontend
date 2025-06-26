@@ -14,11 +14,27 @@ import {
   Rating,
   ListItemAvatar,
   Avatar,
+  Card,
+  CardContent,
+  Chip,
+  Paper,
+  Container,
+  Grid,
+  Badge,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import PendingIcon from "@mui/icons-material/Pending";
+import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
+import CommentIcon from "@mui/icons-material/Comment";
+import StarIcon from "@mui/icons-material/Star";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 const ContentListStudent = () => {
   const { courseId } = useParams();
@@ -33,6 +49,7 @@ const ContentListStudent = () => {
   const [editContent, setEditContent] = useState("");
   const [ratings, setRatings] = useState({});
   const [ratingsList, setRatingsList] = useState({});
+  const [expandedChapters, setExpandedChapters] = useState({});
 
   useEffect(() => {
     fetchChapters();
@@ -126,6 +143,10 @@ const ContentListStudent = () => {
 
   const handleChapterClick = (chapterId) => {
     fetchLessons(chapterId);
+    setExpandedChapters(prev => ({
+      ...prev,
+      [chapterId]: !prev[chapterId]
+    }));
   };
 
   const handleLessonClick = async (lessonId) => {
@@ -230,186 +251,413 @@ const ContentListStudent = () => {
     }
   };
 
+  const getProgressIcon = (status) => {
+    switch(status) {
+      case "completed":
+        return <CheckCircleIcon sx={{ color: '#4caf50' }} />;
+      case "in_progress":
+        return <PendingIcon sx={{ color: '#ff9800' }} />;
+      default:
+        return <RadioButtonUncheckedIcon sx={{ color: '#9e9e9e' }} />;
+    }
+  };
+
+  const getProgressColor = (status) => {
+    switch(status) {
+      case "completed":
+        return { 
+          bg: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+          border: '#4caf50'
+        };
+      case "in_progress":
+        return { 
+          bg: 'linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%)',
+          border: '#ff9800'
+        };
+      default:
+        return { 
+          bg: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
+          border: '#e0e0e0'
+        };
+    }
+  };
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Nội dung khóa học
-      </Typography>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Box sx={{ 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderRadius: 3,
+        p: 4,
+        mb: 4,
+        color: 'white'
+      }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
+          📚 Nội dung khóa học
+        </Typography>
+        <Typography variant="h6" sx={{ opacity: 0.9 }}>
+          Khám phá và học tập theo tiến độ của bạn
+        </Typography>
+      </Box>
 
-      <List>
-        {chapters.map((chapter) => (
-          <Box key={chapter.id}>
-            <ListItem
-              button
-              onClick={() => handleChapterClick(chapter.id)}
-              sx={{ background: "#f5f5f5", mb: 1 }}
-            >
-              <ListItemText primary={`Chương ${chapter.order_number}: ${chapter.title}`} />
-            </ListItem>
-            <Collapse in={!!lessonsByChapter[chapter.id]} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding sx={{ pl: 3 }}>
-                {lessonsByChapter[chapter.id]?.map((lesson) => (
-                  <ListItem
-                    key={lesson.id}
-                    button
-                    onClick={() => handleLessonClick(lesson.id)}
-                    sx={{
-                      background:
-                        progress[lesson.id] === "completed"
-                          ? "#e0f7fa"
-                          : progress[lesson.id] === "in_progress"
-                          ? "#fff3e0"
-                          : "inherit",
-                    }}
-                  >
-                    <ListItemText
-                      primary={`Bài ${lesson.order_number}: ${lesson.title}`}
-                    />
-                    <Button
-                      variant="contained"
-                      color={
-                        progress[lesson.id] === "completed"
-                          ? "secondary"
-                          : progress[lesson.id] === "in_progress"
-                          ? "warning"
-                          : "primary"
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUpdateProgress(lesson.id, progress[lesson.id] || "not_started");
+      <Grid container spacing={4}>
+        {/* Left Panel - Course Content */}
+        <Grid item xs={12} lg={selectedLesson ? 8 : 12}>
+          <Card sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
+          }}>
+            <CardContent sx={{ p: 0 }}>
+              <List sx={{ p: 0 }}>
+                {chapters.map((chapter, index) => (
+                  <Box key={chapter.id}>
+                    <ListItem
+                      button
+                      onClick={() => handleChapterClick(chapter.id)}
+                      sx={{ 
+                        background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)',
+                        borderBottom: '1px solid #e0e7ff',
+                        py: 2.5,
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                          transform: 'translateX(4px)',
+                          transition: 'all 0.3s ease'
+                        }
                       }}
-                      size="small"
                     >
-                      {progress[lesson.id] === "completed"
-                        ? "Hoàn thành"
-                        : progress[lesson.id] === "in_progress"
-                        ? "Đang học"
-                        : "Bắt đầu"}
-                    </Button>
-                    <Rating
-                      name={`rating-${lesson.id}`}
-                      value={ratings[lesson.id] || 0}
-                      precision={0.5}
-                      onChange={(event, newValue) => {
-                        if (newValue) handleRateLesson(lesson.id, newValue);
-                      }}
-                      readOnly={!progress[lesson.id] === "completed"} // Chỉ cho phép đánh giá khi hoàn thành
-                    />
-                  </ListItem>
+                      <ListItemAvatar>
+                        <Avatar sx={{ 
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          fontWeight: 'bold'
+                        }}>
+                          {chapter.order_number}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText 
+                        primary={
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a237e' }}>
+                            {chapter.title}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="body2" sx={{ color: '#5c6bc0', mt: 0.5 }}>
+                            Chương {chapter.order_number}
+                          </Typography>
+                        }
+                      />
+                      <IconButton>
+                        {expandedChapters[chapter.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                    </ListItem>
+                    
+                    <Collapse in={expandedChapters[chapter.id]} timeout="auto" unmountOnExit>
+                      <Box sx={{ background: '#fafafa' }}>
+                        {lessonsByChapter[chapter.id]?.map((lesson, lessonIndex) => {
+                          const progressColors = getProgressColor(progress[lesson.id]);
+                          return (
+                            <ListItem
+                              key={lesson.id}
+                              button
+                              onClick={() => handleLessonClick(lesson.id)}
+                              sx={{
+                                background: progressColors.bg,
+                                borderLeft: `4px solid ${progressColors.border}`,
+                                borderBottom: '1px solid rgba(0,0,0,0.05)',
+                                mx: 2,
+                                my: 1,
+                                borderRadius: 2,
+                                '&:hover': {
+                                  transform: 'translateX(8px)',
+                                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                  transition: 'all 0.3s ease'
+                                }
+                              }}
+                            >
+                              <ListItemAvatar>
+                                {getProgressIcon(progress[lesson.id])}
+                              </ListItemAvatar>
+                              <ListItemText
+                                primary={
+                                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                                    Bài {lesson.order_number}: {lesson.title}
+                                  </Typography>
+                                }
+                                secondary={
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                                    <Rating
+                                      name={`rating-${lesson.id}`}
+                                      value={ratings[lesson.id] || 0}
+                                      precision={0.5}
+                                      onChange={(event, newValue) => {
+                                        if (newValue) handleRateLesson(lesson.id, newValue);
+                                      }}
+                                      readOnly={!progress[lesson.id] === "completed"}
+                                      size="small"
+                                    />
+                                    <Typography variant="caption" sx={{ color: '#666' }}>
+                                      ({ratings[lesson.id]?.toFixed(1) || '0.0'})
+                                    </Typography>
+                                  </Box>
+                                }
+                              />
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end', mr: 2 }}>
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  startIcon={getProgressIcon(progress[lesson.id])}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateProgress(lesson.id, progress[lesson.id] || "not_started");
+                                  }}
+                                  sx={{
+                                    background: progressColors.border,
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    borderRadius: 2,
+                                    px: 2,
+                                    '&:hover': {
+                                      background: progressColors.border,
+                                      opacity: 0.9
+                                    }
+                                  }}
+                                >
+                                  {progress[lesson.id] === "completed"
+                                    ? "Hoàn thành"
+                                    : progress[lesson.id] === "in_progress"
+                                    ? "Đang học"
+                                    : "Bắt đầu"}
+                                </Button>
+                              </Box>
+                            </ListItem>
+                          );
+                        })}
+                      </Box>
+                    </Collapse>
+                  </Box>
                 ))}
               </List>
-            </Collapse>
-          </Box>
-        ))}
-      </List>
+            </CardContent>
+          </Card>
+        </Grid>
 
-      {selectedLesson && (
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6">{selectedLesson.title}</Typography>
-          {selectedLesson.video_url ? (
-            <video
-              src={selectedLesson.video_url}
-              controls
-              style={{ width: "100%", marginTop: "10px" }}
-            />
-          ) : (
-            <Typography color="text.secondary">
-              Không có video
-            </Typography>
-          )}
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="h6">Đánh giá từ người dùng</Typography>
-            {ratingsList[selectedLesson.id] && ratingsList[selectedLesson.id].length > 0 ? (
-              <List>
-                {ratingsList[selectedLesson.id].map((rating) => (
-                  <ListItem key={rating.id}>
-                    <ListItemAvatar>
-                      <Avatar>{rating.User?.username?.charAt(0) || "?"}</Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={`${rating.User?.username || "Ẩn danh"} - ${rating.rating} sao`}
-                      secondary={`Vào ${new Date(rating.created_at).toLocaleDateString()}`}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            ) : (
-              <Typography color="text.secondary">Chưa có đánh giá nào.</Typography>
-            )}
-          </Box>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="h6">Bình luận</Typography>
-            <form onSubmit={handleAddComment}>
-              <TextField
-                fullWidth
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Viết bình luận..."
-                sx={{ mb: 2 }}
-              />
-              <Button type="submit" variant="contained" color="primary">
-                Gửi
-              </Button>
-            </form>
-            <List>
-              {comments.map((comment) => (
-                <ListItem key={comment.id}>
-                  <ListItemText
-                    primary={comment.User?.username || "Anonymous"}
-                    secondary={
-                      editingComment === comment.id ? (
-                        <form onSubmit={handleUpdateComment}>
-                          <TextField
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            fullWidth
-                            sx={{ mb: 1 }}
-                          />
-                          <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            size="small"
-                          >
-                            Lưu
-                          </Button>
-                          <Button
-                            onClick={() => setEditingComment(null)}
-                            color="secondary"
-                            size="small"
-                          >
-                            Hủy
-                          </Button>
-                        </form>
-                      ) : (
-                        comment.content
-                      )
-                    }
-                  />
-                  {comment.user_id ===
-                    parseInt(localStorage.getItem("userId")) && (
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        onClick={() => handleEditComment(comment)}
-                        edge="end"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => handleDeleteComment(comment.id)}
-                        edge="end"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
+        {/* Right Panel - Lesson Details */}
+        {selectedLesson && (
+          <Grid item xs={12} lg={4}>
+            <Card sx={{ 
+              borderRadius: 3,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              position: 'sticky',
+              top: 20
+            }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                  <Avatar sx={{ 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    width: 48,
+                    height: 48
+                  }}>
+                    <VideoLibraryIcon />
+                  </Avatar>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1a237e' }}>
+                    {selectedLesson.title}
+                  </Typography>
+                </Box>
+
+                {/* Video Section */}
+                <Box sx={{ mb: 4 }}>
+                  {selectedLesson.video_url ? (
+                    <Box sx={{ 
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                    }}>
+                      <video
+                        src={selectedLesson.video_url}
+                        controls
+                        style={{ width: "100%", display: 'block' }}
+                      />
+                    </Box>
+                  ) : (
+                    <Paper sx={{ 
+                      p: 4, 
+                      textAlign: 'center',
+                      background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
+                      borderRadius: 2
+                    }}>
+                      <VideoLibraryIcon sx={{ fontSize: 48, color: '#9e9e9e', mb: 2 }} />
+                      <Typography color="text.secondary">
+                        Không có video
+                      </Typography>
+                    </Paper>
                   )}
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Box>
-      )}
-    </Box>
+                </Box>
+
+                {/* Ratings Section */}
+                <Paper sx={{ p: 3, mb: 3, borderRadius: 2, background: '#fafafa' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <StarIcon sx={{ color: '#ff9800' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      Đánh giá từ người dùng
+                    </Typography>
+                  </Box>
+                  {ratingsList[selectedLesson.id] && ratingsList[selectedLesson.id].length > 0 ? (
+                    <List sx={{ maxHeight: 200, overflow: 'auto' }}>
+                      {ratingsList[selectedLesson.id].map((rating) => (
+                        <ListItem key={rating.id} sx={{ px: 0, py: 1 }}>
+                          <ListItemAvatar>
+                            <Avatar sx={{ width: 32, height: 32, fontSize: '0.875rem' }}>
+                              {rating.User?.username?.charAt(0) || "?"}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="subtitle2">
+                                  {rating.User?.username || "Ẩn danh"}
+                                </Typography>
+                                <Chip 
+                                  label={`${rating.rating} ⭐`} 
+                                  size="small"
+                                  sx={{ backgroundColor: '#fff3e0', color: '#f57c00' }}
+                                />
+                              </Box>
+                            }
+                            secondary={
+                              <Typography variant="caption" color="text.secondary">
+                                {new Date(rating.created_at).toLocaleDateString()}
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                      Chưa có đánh giá nào.
+                    </Typography>
+                  )}
+                </Paper>
+
+                {/* Comments Section */}
+                <Paper sx={{ p: 3, borderRadius: 2, background: '#fafafa' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                    <CommentIcon sx={{ color: '#2196f3' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      Bình luận
+                    </Typography>
+                    <Badge badgeContent={comments.length} color="secondary" />
+                  </Box>
+                  
+                  <Box component="form" onSubmit={handleAddComment} sx={{ mb: 3 }}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Chia sẻ suy nghĩ của bạn về bài học này..."
+                      variant="outlined"
+                      sx={{ 
+                        mb: 2,
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="submit" 
+                      variant="contained" 
+                      fullWidth
+                      sx={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: 2,
+                        py: 1.5
+                      }}
+                    >
+                      Gửi bình luận
+                    </Button>
+                  </Box>
+
+                  <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+                    {comments.map((comment) => (
+                      <ListItem key={comment.id} sx={{ px: 0, alignItems: 'flex-start' }}>
+                        <ListItemAvatar>
+                          <Avatar sx={{ width: 32, height: 32, fontSize: '0.875rem' }}>
+                            {comment.User?.username?.charAt(0) || "A"}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                              {comment.User?.username || "Anonymous"}
+                            </Typography>
+                          }
+                          secondary={
+                            editingComment === comment.id ? (
+                              <Box component="form" onSubmit={handleUpdateComment} sx={{ mt: 1 }}>
+                                <TextField
+                                  value={editContent}
+                                  onChange={(e) => setEditContent(e.target.value)}
+                                  fullWidth
+                                  multiline
+                                  rows={2}
+                                  sx={{ mb: 1 }}
+                                  variant="outlined"
+                                  size="small"
+                                />
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                  <Button
+                                    type="submit"
+                                    variant="contained"
+                                    size="small"
+                                    sx={{ minWidth: 60 }}
+                                  >
+                                    Lưu
+                                  </Button>
+                                  <Button
+                                    onClick={() => setEditingComment(null)}
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{ minWidth: 60 }}
+                                  >
+                                    Hủy
+                                  </Button>
+                                </Box>
+                              </Box>
+                            ) : (
+                              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                                {comment.content}
+                              </Typography>
+                            )
+                          }
+                        />
+                        {comment.user_id === parseInt(localStorage.getItem("userId")) && (
+                          <ListItemSecondaryAction>
+                            <IconButton
+                              onClick={() => handleEditComment(comment)}
+                              size="small"
+                              sx={{ mr: 0.5 }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              onClick={() => handleDeleteComment(comment.id)}
+                              size="small"
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </ListItemSecondaryAction>
+                        )}
+                      </ListItem>
+                    ))}
+                  </List>
+                </Paper>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+      </Grid>
+    </Container>
   );
 };
 
