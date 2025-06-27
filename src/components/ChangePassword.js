@@ -209,7 +209,7 @@ const ChangePassword = () => {
               Đổi Mật Khẩu
             </Button>
             <Button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/courses")}
               variant="outlined"
               fullWidth
               sx={{
