@@ -144,7 +144,7 @@ const UserMenu = () => {
         <MenuItem onClick={() => handleNavigate('/change-password')}>
           <Lock sx={{ mr: 1, color: 'action.active' }} />
           <Typography variant="body2">Đổi mật khẩu</Typography>
-N         </MenuItem>
+        </MenuItem>
         <LogoutButton handleCloseMenu={handleMenuClose} />
       </Menu>
     </Box>

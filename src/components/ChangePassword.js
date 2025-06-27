@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { Lock, Visibility, VisibilityOff } from "@mui/icons-material";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from '../contexts/ThemeContext';
 
 const ChangePassword = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,8 @@ const ChangePassword = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const navigate = useNavigate();
+
+  const { isDarkMode } = useTheme();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,23 +46,26 @@ const ChangePassword = () => {
     setShowCurrentPassword(!showCurrentPassword);
   const handleToggleNewPassword = () => setShowNewPassword(!showNewPassword);
 
-  // Shared InputProps to avoid autofill issues
   const inputProps = {
     sx: {
-      backgroundColor: "white",
+      backgroundColor: isDarkMode ? 'grey.800' : 'white', // Nền input
       borderRadius: 2,
-      "& input": {
-        backgroundColor: "transparent !important",
-        "&:-webkit-autofill": {
-          WebkitBoxShadow: "0 0 0 1000px white inset !important",
-          WebkitTextFillColor: "black !important",
+      '& input': {
+        color: 'text.primary',
+        backgroundColor: 'transparent !important',
+        '&:-webkit-autofill': {
+          WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #333333 inset !important' : '0 0 0 1000px white inset !important',
+          WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important',
         },
       },
-      "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: "divider",
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: isDarkMode ? 'grey.700' : 'divider', // Màu viền
       },
-      "&:hover .MuiOutlinedInput-notchedOutline": {
-        borderColor: "primary.main",
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'primary.main',
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'primary.main',
       },
     },
   };
@@ -69,8 +75,14 @@ const ChangePassword = () => {
       maxWidth="sm"
       sx={{
         py: 6,
-        minHeight: "100vh", // Đảm bảo nền phủ toàn bộ chiều cao
-        bgcolor: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", // Áp dụng gradient nền
+        minHeight: "100vh",
+        background: isDarkMode
+          ? "linear-gradient(135deg, #1a202c 0%, #2d3748 100%)" // Darker gradient for dark mode
+          : "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", // Original light gradient
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
       }}
     >
       {/* Header */}
@@ -103,14 +115,14 @@ const ChangePassword = () => {
           sx={{
             mt: 4,
             p: { xs: 2, sm: 4 },
-            boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+            boxShadow: isDarkMode ? "0 4px 20px rgba(0,0,0,0.5)" : "0 2px 12px rgba(0,0,0,0.04)",
             borderRadius: 3,
-            bgcolor: "background.paper", // Giữ thẻ form màu trắng để nổi bật trên nền gradient
+            bgcolor: "background.paper",
             border: "1px solid",
-            borderColor: "divider",
+            borderColor: isDarkMode ? "grey.800" : "divider",
             transition: "transform 0.6s ease, box-shadow 0.6s ease",
             "&:hover": {
-              boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+              boxShadow: isDarkMode ? "0 25px 50px rgba(0,0,0,0.4)" : "0 20px 40px rgba(0,0,0,0.15)",
               transform: "translateY(-8px)",
             },
           }}
@@ -142,6 +154,7 @@ const ChangePassword = () => {
                     <IconButton
                       onClick={handleToggleCurrentPassword}
                       edge="end"
+                      sx={{ color: 'text.secondary' }}
                     >
                       {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -149,7 +162,7 @@ const ChangePassword = () => {
                 ),
               }}
               sx={{
-                "& .MuiInputLabel-root": { fontWeight: 500 },
+                "& .MuiInputLabel-root": { fontWeight: 500, color: 'text.secondary' },
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
                   transition: "all 0.3s ease",
@@ -174,14 +187,18 @@ const ChangePassword = () => {
                 ),
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={handleToggleNewPassword} edge="end">
+                    <IconButton
+                      onClick={handleToggleNewPassword}
+                      edge="end"
+                      sx={{ color: 'text.secondary' }}
+                    >
                       {showNewPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
               sx={{
-                "& .MuiInputLabel-root": { fontWeight: 500 },
+                "& .MuiInputLabel-root": { fontWeight: 500, color: 'text.secondary' },
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
                   transition: "all 0.3s ease",
@@ -216,11 +233,11 @@ const ChangePassword = () => {
                 py: 1.5,
                 fontWeight: 600,
                 borderRadius: 2,
-                borderColor: "divider",
-                color: "text.primary",
+                borderColor: isDarkMode ? 'grey.700' : 'divider',
+                color: 'text.primary',
                 "&:hover": {
-                  borderColor: "primary.main",
-                  backgroundColor: "background.default",
+                  borderColor: 'primary.main',
+                  backgroundColor: isDarkMode ? 'grey.800' : 'background.default',
                   transform: "translateY(-2px)",
                 },
                 transition: "all 0.3s ease",

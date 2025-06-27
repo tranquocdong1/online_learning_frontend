@@ -3,7 +3,8 @@ import { TextField, Button, Box, Typography, Container, Link as MuiLink, Card, C
 import { toast } from 'react-toastify';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { PersonAdd } from '@mui/icons-material'; // Icon for registration
+import { PersonAdd } from '@mui/icons-material';
+import { useTheme } from '../contexts/ThemeContext';
 
 const UserRegister = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ const UserRegister = () => {
     full_name: '',
   });
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,24 +32,38 @@ const UserRegister = () => {
   };
 
   return (
-    <Container maxWidth="xs" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', py: 4 }}>
+    <Container
+      maxWidth="xs"
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        py: 4,
+        background: isDarkMode
+          ? "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)"
+          : "linear-gradient(135deg, #e0f2f7 0%, #a7d9ed 100%)",
+      }}
+    >
       <Card
-        elevation={10} // Prominent shadow like the login page
+        elevation={isDarkMode ? 15 : 10}
         sx={{
           width: '100%',
           maxWidth: 400,
-          borderRadius: 3, // Rounded corners
+          borderRadius: 3,
           overflow: 'hidden',
           position: 'relative',
-          background: 'white',
-          '&::before': { // Gradient top border
+          background: isDarkMode ? 'background.paper' : 'white',
+          border: '1px solid',
+          borderColor: isDarkMode ? 'grey.800' : 'grey.200',
+          '&::before': {
             content: '""',
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
             height: 8,
-            background: 'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)', // Using a different gradient color from admin dashboard
+            background: 'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)',
             borderRadius: '12px 12px 0 0',
           },
         }}
@@ -59,8 +75,8 @@ const UserRegister = () => {
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 2, // Spacing between elements
-            pt: 4, // Padding to account for the top border
+            gap: 2,
+            pt: 4,
             pb: 4,
             px: 4,
           }}
@@ -86,22 +102,23 @@ const UserRegister = () => {
             autoComplete="new-username"
             variant="outlined"
             sx={{
+              '& .MuiInputLabel-root': { color: 'text.secondary' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                backgroundColor: 'grey.50',
-                '& fieldset': { borderColor: 'grey.300' },
-                '&:hover fieldset': { borderColor: 'secondary.main' }, // Using secondary color for register fields
+                backgroundColor: isDarkMode ? 'grey.900' : 'grey.50',
+                '& fieldset': { borderColor: isDarkMode ? 'grey.700' : 'grey.300' },
+                '&:hover fieldset': { borderColor: 'secondary.main' },
                 '&.Mui-focused fieldset': { borderColor: 'secondary.main', borderWidth: '2px' },
+                '& input': { color: 'text.primary' },
               },
             }}
             InputProps={{
               sx: {
-                backgroundColor: 'transparent !important',
                 '& input': {
                   backgroundColor: 'transparent !important',
                   '&:-webkit-autofill': {
-                    WebkitBoxShadow: '0 0 0 1000px #f0f0f0 inset !important',
-                    WebkitTextFillColor: 'black !important',
+                    WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #2d3748 inset !important' : '0 0 0 1000px #f0f0f0 inset !important', // Autofill background
+                    WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important',
                   },
                 },
               },
@@ -119,22 +136,23 @@ const UserRegister = () => {
             autoComplete="new-email"
             variant="outlined"
             sx={{
+              '& .MuiInputLabel-root': { color: 'text.secondary' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                backgroundColor: 'grey.50',
-                '& fieldset': { borderColor: 'grey.300' },
+                backgroundColor: isDarkMode ? 'grey.900' : 'grey.50',
+                '& fieldset': { borderColor: isDarkMode ? 'grey.700' : 'grey.300' },
                 '&:hover fieldset': { borderColor: 'secondary.main' },
                 '&.Mui-focused fieldset': { borderColor: 'secondary.main', borderWidth: '2px' },
+                '& input': { color: 'text.primary' },
               },
             }}
             InputProps={{
               sx: {
-                backgroundColor: 'transparent !important',
                 '& input': {
                   backgroundColor: 'transparent !important',
                   '&:-webkit-autofill': {
-                    WebkitBoxShadow: '0 0 0 1000px #f0f0f0 inset !important',
-                    WebkitTextFillColor: 'black !important',
+                    WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #2d3748 inset !important' : '0 0 0 1000px #f0f0f0 inset !important', // Autofill background
+                    WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important',
                   },
                 },
               },
@@ -152,22 +170,23 @@ const UserRegister = () => {
             autoComplete="new-password"
             variant="outlined"
             sx={{
+              '& .MuiInputLabel-root': { color: 'text.secondary' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                backgroundColor: 'grey.50',
-                '& fieldset': { borderColor: 'grey.300' },
+                backgroundColor: isDarkMode ? 'grey.900' : 'grey.50',
+                '& fieldset': { borderColor: isDarkMode ? 'grey.700' : 'grey.300' },
                 '&:hover fieldset': { borderColor: 'secondary.main' },
                 '&.Mui-focused fieldset': { borderColor: 'secondary.main', borderWidth: '2px' },
+                '& input': { color: 'text.primary' },
               },
             }}
             InputProps={{
               sx: {
-                backgroundColor: 'transparent !important',
                 '& input': {
                   backgroundColor: 'transparent !important',
                   '&:-webkit-autofill': {
-                    WebkitBoxShadow: '0 0 0 1000px #f0f0f0 inset !important',
-                    WebkitTextFillColor: 'black !important',
+                    WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #2d3748 inset !important' : '0 0 0 1000px #f0f0f0 inset !important', // Autofill background
+                    WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important',
                   },
                 },
               },
@@ -184,22 +203,23 @@ const UserRegister = () => {
             autoComplete="name"
             variant="outlined"
             sx={{
+              '& .MuiInputLabel-root': { color: 'text.secondary' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                backgroundColor: 'grey.50',
-                '& fieldset': { borderColor: 'grey.300' },
+                backgroundColor: isDarkMode ? 'grey.900' : 'grey.50',
+                '& fieldset': { borderColor: isDarkMode ? 'grey.700' : 'grey.300' },
                 '&:hover fieldset': { borderColor: 'secondary.main' },
                 '&.Mui-focused fieldset': { borderColor: 'secondary.main', borderWidth: '2px' },
+                '& input': { color: 'text.primary' },
               },
             }}
             InputProps={{
               sx: {
-                backgroundColor: 'transparent !important',
                 '& input': {
                   backgroundColor: 'transparent !important',
                   '&:-webkit-autofill': {
-                    WebkitBoxShadow: '0 0 0 1000px #f0f0f0 inset !important',
-                    WebkitTextFillColor: 'black !important',
+                    WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #2d3748 inset !important' : '0 0 0 1000px #f0f0f0 inset !important', // Autofill background
+                    WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important',
                   },
                 },
               },
@@ -212,7 +232,7 @@ const UserRegister = () => {
             size="large"
             sx={{
               mt: 2,
-              background: 'linear-gradient(45deg, #4facfe 30%, #00f2fe 90%)', // Gradient from admin dashboard (blue/cyan)
+              background: 'linear-gradient(45deg, #4facfe 30%, #00f2fe 90%)',
               py: 1.5,
               borderRadius: 2.5,
               fontWeight: 'bold',
@@ -221,14 +241,23 @@ const UserRegister = () => {
               '&:hover': {
                 transform: 'translateY(-2px)',
                 boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
-                background: 'linear-gradient(45deg, #00f2fe 30%, #4facfe 90%)', // Subtle gradient change on hover
+                background: 'linear-gradient(45deg, #00f2fe 30%, #4facfe 90%)',
               },
             }}
           >
             REGISTER
           </Button>
 
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, pt: 2, borderTop: '1px dashed', borderColor: 'grey.300' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              mt: 3,
+              pt: 2,
+              borderTop: '1px dashed',
+              borderColor: isDarkMode ? 'grey.700' : 'grey.300',
+            }}
+          >
             <Typography variant="body2" color="text.secondary">
               Already have an account?{' '}
               <MuiLink
@@ -237,7 +266,7 @@ const UserRegister = () => {
                 sx={{
                   fontWeight: 'bold',
                   textDecoration: 'none',
-                  color: 'primary.main', // Using primary color for existing account link
+                  color: 'primary.main',
                   '&:hover': { textDecoration: 'underline' },
                 }}
               >

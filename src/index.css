@@ -11,3 +11,23 @@ code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+.MuiPaper-root {
+  background-color: #FFFFFF;
+  opacity: 1 ;
+  background-image: none;
+}
+
+.dark-mode .MuiPaper-root {
+  background-color: #1A2027 !important;
+  opacity: 1 !important;
+  background-image: none !important;
+}
+
+.MuiMenuItem-root {
+  color: #212121 !important;
+}
+
+.dark-mode .MuiMenuItem-root {
+  color: #FFFFFF !important;
+}
