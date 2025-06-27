@@ -365,7 +365,7 @@ const UserProfile = () => {
 
             {/* Back to Dashboard */}
             <Button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/courses')}
               variant="text"
               fullWidth
               disabled={loading}

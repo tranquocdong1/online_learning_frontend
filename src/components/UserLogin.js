@@ -27,7 +27,7 @@ const UserLogin = () => {
       localStorage.setItem('userId', decodedToken.id);
 
       toast.success('Login successful');
-      navigate('/dashboard');
+      navigate('/courses');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
     }

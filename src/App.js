@@ -59,7 +59,7 @@ const AppContent = () => {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
-          <Route path="/" element={<UserLoginPage />} />
+          <Route path="/" element={<CourseListStudent />} />
         </Routes>
       </Router>
     </MuiThemeProvider>
