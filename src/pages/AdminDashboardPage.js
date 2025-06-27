@@ -1,12 +1,11 @@
-//pages/AdminDashboardPage.js
 import React from "react";
-import { 
-  Typography, 
-  Box, 
-  Button, 
-  Card, 
-  CardContent, 
-  Grid, 
+import {
+  Typography,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Grid,
   Avatar,
   Container,
   Paper,
@@ -14,19 +13,20 @@ import {
   alpha,
   Fade
 } from "@mui/material";
-import { 
-  People, 
-  Category, 
-  School, 
+import {
+  People,
+  Category,
+  School,
   Dashboard,
-  TrendingUp,
-  Security,
-  Settings
+  // Removed unused icons: TrendingUp, Security, Settings
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import ThemeToggleButton from '../components/ThemeToggleButton';
+import { useTheme } from '../contexts/ThemeContext';
 
 const AdminDashboardPage = () => {
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
 
   const managementCards = [
     {
@@ -58,33 +58,12 @@ const AdminDashboardPage = () => {
     }
   ];
 
-  const quickActions = [
-    {
-      title: "System Analytics",
-      description: "View detailed system metrics and performance",
-      icon: <TrendingUp />,
-      color: "#43e97b"
-    },
-    {
-      title: "Security Settings",
-      description: "Configure security policies and access controls",
-      icon: <Security />,
-      color: "#fa709a"
-    },
-    {
-      title: "System Settings",
-      description: "Manage application configuration and preferences",
-      icon: <Settings />,
-      color: "#ffecd2"
-    }
-  ];
-
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header Section */}
-      <Card 
-        elevation={0} 
-        sx={{ 
+      <Card
+        elevation={0}
+        sx={{
           mb: 4,
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           color: 'white',
@@ -93,7 +72,7 @@ const AdminDashboardPage = () => {
           position: 'relative'
         }}
       >
-        <Box 
+        <Box
           sx={{
             position: 'absolute',
             top: 0,
@@ -107,8 +86,8 @@ const AdminDashboardPage = () => {
         />
         <CardContent sx={{ py: 5, position: 'relative', zIndex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Avatar 
-              sx={{ 
+            <Avatar
+              sx={{
                 bgcolor: alpha('#fff', 0.2),
                 width: 80,
                 height: 80,
@@ -126,6 +105,19 @@ const AdminDashboardPage = () => {
               </Typography>
             </Box>
           </Box>
+          {/* Theme Toggle Button - Added to the header */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: { xs: 16, md: 24 },
+              right: { xs: 16, md: 24 },
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
+            <ThemeToggleButton />
+          </Box>
         </CardContent>
       </Card>
 
@@ -133,14 +125,14 @@ const AdminDashboardPage = () => {
       <Typography variant="h5" fontWeight="bold" sx={{ mb: 3, color: 'text.primary' }}>
         Core Management
       </Typography>
-      
+
       <Grid container spacing={3} sx={{ mb: 5 }}>
         {managementCards.map((card, index) => (
           <Grid item xs={12} md={4} key={index}>
             <Fade in={true} timeout={500 + index * 200}>
-              <Card 
+              <Card
                 elevation={0}
-                sx={{ 
+                sx={{
                   height: '100%',
                   borderRadius: 3,
                   border: '1px solid',
@@ -165,8 +157,8 @@ const AdminDashboardPage = () => {
                 />
                 <CardContent sx={{ p: 3, height: 'calc(100% - 6px)' }}>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 3 }}>
-                    <Avatar 
-                      sx={{ 
+                    <Avatar
+                      sx={{
                         bgcolor: alpha(card.color, 0.1),
                         color: card.color,
                         width: 60,
@@ -184,9 +176,9 @@ const AdminDashboardPage = () => {
                       </Typography>
                     </Box>
                   </Box>
-                  
+
                   <Divider sx={{ mb: 2 }} />
-                  
+
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="caption" color="text.secondary">
                       {card.stats}
@@ -215,7 +207,6 @@ const AdminDashboardPage = () => {
           </Grid>
         ))}
       </Grid>
-
     </Container>
   );
 };

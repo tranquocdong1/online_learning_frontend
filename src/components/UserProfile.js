@@ -14,8 +14,9 @@ import {
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { Person, Email, UploadFile } from '@mui/icons-material';
-import api from '../services/api'; // Đảm bảo đường dẫn này đúng
+import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../contexts/ThemeContext';
 
 const UserProfile = () => {
   const [profile, setProfile] = useState({
@@ -31,6 +32,8 @@ const UserProfile = () => {
   });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const { isDarkMode } = useTheme();
 
   const fetchProfile = async () => {
     try {
@@ -101,13 +104,12 @@ const UserProfile = () => {
     }
   };
 
-  // Common input styling
   const commonInputProps = {
     sx: {
-      backgroundColor: 'white',
+      backgroundColor: isDarkMode ? 'grey.800' : 'white',
       borderRadius: 2,
       '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: 'grey.300',
+        borderColor: isDarkMode ? 'grey.700' : 'grey.300',
       },
       '&:hover .MuiOutlinedInput-notchedOutline': {
         borderColor: 'primary.main',
@@ -116,32 +118,35 @@ const UserProfile = () => {
         borderColor: 'primary.main',
         borderWidth: '2px',
       },
-      // Autofill styling
+      '& input': {
+        color: 'text.primary',
+      },
       '& input:-webkit-autofill': {
-        WebkitBoxShadow: '0 0 0 1000px white inset !important',
-        WebkitTextFillColor: 'black !important',
+        WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #333333 inset !important' : '0 0 0 1000px white inset !important',
+        WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important',
       },
     },
   };
 
   return (
-    // Sử dụng Box bao ngoài để tạo nền toàn màn hình
     <Box
       sx={{
-        minHeight: '100vh', // Đảm bảo Box này chiếm toàn bộ chiều cao khung nhìn
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #e0f2f7 0%, #c1d5e0 100%)', // Nền gradient
-        overflowX: 'hidden', // Ngăn thanh cuộn ngang
-        py: 4, // Padding trên dưới cho Box, hoặc để Container xử lý
+        background: isDarkMode
+          ? 'linear-gradient(135deg, #1a202c 0%, #2d3748 100%)'
+          : 'linear-gradient(135deg, #e0f2f7 0%, #c1d5e0 100%)',
+        overflowX: 'hidden',
+        py: 4,
       }}
     >
       <Container
         maxWidth="sm"
         sx={{
-          py: 4, // Padding cho Container để tạo khoảng cách với lề màn hình
+          py: 4,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -155,12 +160,11 @@ const UserProfile = () => {
             component="h1"
             sx={{
               fontWeight: 700,
-              color: 'text.primary',
-              mb: 1.5,
               background: 'linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               fontSize: { xs: '2.5rem', sm: '3rem' },
+              mb: 1.5,
             }}
           >
             Hồ Sơ Người Dùng
@@ -180,16 +184,16 @@ const UserProfile = () => {
             component="form"
             onSubmit={handleSubmit}
             autoComplete="off"
-            elevation={10}
+            elevation={isDarkMode ? 15 : 10}
             sx={{
               p: { xs: 3, sm: 5 },
               borderRadius: 4,
               bgcolor: 'background.paper',
               border: '1px solid',
-              borderColor: 'grey.200',
+              borderColor: isDarkMode ? 'grey.800' : 'grey.200',
               transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
               '&:hover': {
-                boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                boxShadow: isDarkMode ? '0 15px 30px rgba(0,0,0,0.5)' : '0 15px 30px rgba(0,0,0,0.1)', // Box shadow cho hover
                 transform: 'translateY(-5px)',
               },
               width: '100%',
@@ -208,16 +212,16 @@ const UserProfile = () => {
                     height: 140,
                     border: '4px solid',
                     borderColor: 'primary.light',
-                    boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
+                    boxShadow: isDarkMode ? '0 6px 20px rgba(0,0,0,0.4)' : '0 6px 20px rgba(0,0,0,0.1)', // Box shadow avatar
                     transition: 'all 0.3s ease-in-out',
                     '&:hover': {
                       transform: 'scale(1.08) rotate(2deg)',
-                      boxShadow: '0 12px 30px rgba(102, 126, 234, 0.5)',
+                      boxShadow: isDarkMode ? '0 12px 30px rgba(102, 126, 234, 0.5)' : '0 12px 30px rgba(102, 126, 234, 0.5)',
                     },
                   }}
                 >
                   {!profile.avatar && (
-                    <Person sx={{ fontSize: 80, color: 'grey.400' }} />
+                    <Person sx={{ fontSize: 80, color: isDarkMode ? 'grey.600' : 'grey.400' }} />
                   )}
                 </Avatar>
               )}
@@ -231,10 +235,10 @@ const UserProfile = () => {
                 justifyContent: 'center',
                 mb: 4,
                 p: 1.5,
-                bgcolor: 'grey.50',
+                bgcolor: isDarkMode ? 'grey.900' : 'grey.50',
                 borderRadius: 2,
                 border: '1px dashed',
-                borderColor: 'grey.300',
+                borderColor: isDarkMode ? 'grey.700' : 'grey.300',
               }}
             >
               <Email sx={{ color: 'text.secondary', mr: 1 }} />
@@ -297,11 +301,11 @@ const UserProfile = () => {
                   py: 1.8,
                   fontWeight: 600,
                   borderRadius: 2,
-                  borderColor: 'primary.light',
-                  color: 'primary.main',
+                  borderColor: isDarkMode ? 'primary.dark' : 'primary.light',
+                  color: isDarkMode ? 'primary.light' : 'primary.main',
                   '&:hover': {
                     borderColor: 'primary.dark',
-                    backgroundColor: 'primary.light',
+                    backgroundColor: isDarkMode ? 'primary.dark' : 'primary.light',
                     color: 'white',
                     transform: 'translateY(-2px)',
                     boxShadow: '0 4px 15px rgba(0, 123, 255, 0.2)',
@@ -348,8 +352,8 @@ const UserProfile = () => {
                   boxShadow: '0 10px 30px rgba(0, 123, 255, 0.4)',
                 },
                 '&:disabled': {
-                  background: 'linear-gradient(135deg, #a7d9f8 0%, #76aae6 100%)',
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  background: isDarkMode ? 'linear-gradient(135deg, #333333 0%, #444444 100%)' : 'linear-gradient(135deg, #a7d9f8 0%, #76aae6 100%)',
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.7)',
                   boxShadow: 'none',
                 },
                 transition: 'all 0.3s ease-out',
@@ -371,7 +375,7 @@ const UserProfile = () => {
                 borderRadius: 2,
                 color: 'primary.main',
                 '&:hover': {
-                  backgroundColor: 'primary.light',
+                  backgroundColor: isDarkMode ? 'primary.dark' : 'primary.light',
                   color: 'white',
                   transform: 'translateY(-1px)',
                 },

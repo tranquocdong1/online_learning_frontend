@@ -4,28 +4,32 @@ import { Link } from 'react-router-dom';
 import { Person, Lock, School, Dashboard as DashboardIcon } from '@mui/icons-material';
 import LogoutButton from '../components/LogoutButton';
 import CategoryListStudent from '../components/CategoryListStudent';
+import ThemeToggleButton from '../components/ThemeToggleButton';
+import { useTheme } from '../contexts/ThemeContext';
 
 const DashboardPage = () => {
+  const { isDarkMode } = useTheme();
+  
   const menuItems = [
     {
-      title: 'Xem/Chỉnh sửa Hồ sơ', // Changed from 'View/Edit Profile'
-      description: 'Quản lý thông tin cá nhân và cài đặt của bạn', // Changed from 'Manage your personal information and settings'
+      title: 'Xem/Chỉnh sửa Hồ sơ',
+      description: 'Quản lý thông tin cá nhân và cài đặt của bạn',
       path: '/profile',
       icon: <Person sx={{ fontSize: 32 }} />,
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       hoverShadow: '0 20px 40px rgba(102, 126, 234, 0.3)'
     },
     {
-      title: 'Đổi mật khẩu', // Changed from 'Change Password'
-      description: 'Cập nhật thông tin bảo mật tài khoản của bạn', // Changed from 'Update your account security credentials'
+      title: 'Đổi mật khẩu',
+      description: 'Cập nhật thông tin bảo mật tài khoản của bạn',
       path: '/change-password',
       icon: <Lock sx={{ fontSize: 32 }} />,
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       hoverShadow: '0 20px 40px rgba(240, 147, 251, 0.3)'
     },
     {
-      title: 'Khám phá các khóa học', // Changed from 'Explore and join courses'
-      description: 'Khám phá và tham gia các khóa học', // Changed from 'Discover learning opportunities, join courses'
+      title: 'Khám phá các khóa học',
+      description: 'Khám phá và tham gia các khóa học',
       path: '/courses',
       icon: <School sx={{ fontSize: 32 }} />,
       gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
@@ -33,12 +37,20 @@ const DashboardPage = () => {
     }
   ];
 
+  const backgroundGradient = isDarkMode 
+    ? 'linear-gradient(135deg, #0f1419 0%, #1a202c 100%)'
+    : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)';
+
   return (
     <Box sx={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-      py: 4
+      background: backgroundGradient,
+      py: 4,
+      position: 'relative'
     }}>
+      {/* Theme Toggle Button - Floating */}
+      <ThemeToggleButton variant="floating" />
+
       <Container maxWidth="lg">
         {/* Header Section */}
         <Box sx={{
@@ -46,6 +58,16 @@ const DashboardPage = () => {
           mb: 6,
           position: 'relative'
         }}>
+          {/* Theme Toggle in Header */}
+          <Box sx={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            display: { xs: 'none', md: 'block' }
+          }}>
+            <ThemeToggleButton />
+          </Box>
+
           <Box sx={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -57,7 +79,9 @@ const DashboardPage = () => {
               width: 80,
               height: 80,
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)',
+              boxShadow: isDarkMode 
+                ? '0 8px 32px rgba(102, 126, 234, 0.5)' 
+                : '0 8px 32px rgba(102, 126, 234, 0.3)',
               animation: 'pulse 2s infinite',
               '@keyframes pulse': {
                 '0%, 100%': {
@@ -75,7 +99,7 @@ const DashboardPage = () => {
               width: 100,
               height: 100,
               borderRadius: '50%',
-              border: '2px solid rgba(102, 126, 234, 0.2)',
+              border: `2px solid ${isDarkMode ? 'rgba(102, 126, 234, 0.4)' : 'rgba(102, 126, 234, 0.2)'}`,
               animation: 'spin 20s linear infinite',
               '@keyframes spin': {
                 from: {
@@ -132,9 +156,13 @@ const DashboardPage = () => {
             <Grid item xs={12} md={4} key={item.path}>
               <Card sx={{
                 height: '100%',
-                background: 'rgba(255, 255, 255, 0.9)',
+                background: isDarkMode 
+                  ? 'rgba(30, 41, 59, 0.9)' 
+                  : 'rgba(255, 255, 255, 0.9)',
                 backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                border: isDarkMode 
+                  ? '1px solid rgba(255, 255, 255, 0.1)' 
+                  : '1px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: 3,
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 cursor: 'pointer',
@@ -153,12 +181,14 @@ const DashboardPage = () => {
                 },
                 '&:hover': {
                   transform: 'translateY(-8px)',
-                  boxShadow: item.hoverShadow,
+                  boxShadow: isDarkMode 
+                    ? item.hoverShadow.replace('0.3', '0.5')
+                    : item.hoverShadow,
                   '& .card-icon': {
                     transform: 'scale(1.1) rotate(5deg)',
                   },
                   '& .card-bg': {
-                    opacity: 0.1,
+                    opacity: isDarkMode ? 0.15 : 0.1,
                     transform: 'scale(1.1)',
                   }
                 }
@@ -172,7 +202,7 @@ const DashboardPage = () => {
                     right: 0,
                     bottom: 0,
                     background: item.gradient,
-                    opacity: 0.05,
+                    opacity: isDarkMode ? 0.08 : 0.05,
                     transition: 'all 0.3s ease',
                   }}
                 />
@@ -196,7 +226,9 @@ const DashboardPage = () => {
                       color: 'white',
                       mb: 3,
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                      boxShadow: isDarkMode 
+                        ? '0 8px 25px rgba(0,0,0,0.3)' 
+                        : '0 8px 25px rgba(0,0,0,0.15)',
                     }}
                   >
                     {item.icon}
@@ -235,7 +267,9 @@ const DashboardPage = () => {
                       transition: 'all 0.3s ease',
                       '&:hover': {
                         background: item.gradient,
-                        boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+                        boxShadow: isDarkMode 
+                          ? '0 8px 25px rgba(0,0,0,0.4)' 
+                          : '0 8px 25px rgba(0,0,0,0.2)',
                         transform: 'translateY(-2px)',
                       }
                     }}
@@ -251,7 +285,9 @@ const DashboardPage = () => {
                   right: -8,
                   width: 80,
                   height: 80,
-                  background: 'rgba(255, 255, 255, 0.1)',
+                  background: isDarkMode 
+                    ? 'rgba(255, 255, 255, 0.05)' 
+                    : 'rgba(255, 255, 255, 0.1)',
                   borderRadius: '50%',
                   filter: 'blur(20px)',
                   transition: 'transform 0.5s ease',
@@ -280,9 +316,13 @@ const DashboardPage = () => {
         }}>
           <Card sx={{
             display: 'inline-block',
-            background: 'rgba(255, 255, 255, 0.9)',
+            background: isDarkMode 
+              ? 'rgba(30, 41, 59, 0.9)' 
+              : 'rgba(255, 255, 255, 0.9)',
             backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            border: isDarkMode 
+              ? '1px solid rgba(255, 255, 255, 0.1)' 
+              : '1px solid rgba(255, 255, 255, 0.2)',
             borderRadius: 3,
             px: 4,
             py: 2
@@ -293,9 +333,13 @@ const DashboardPage = () => {
 
         {/* Categories Section */}
         <Box sx={{
-          background: 'rgba(255, 255, 255, 0.9)',
+          background: isDarkMode 
+            ? 'rgba(30, 41, 59, 0.9)' 
+            : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          border: isDarkMode 
+            ? '1px solid rgba(255, 255, 255, 0.1)' 
+            : '1px solid rgba(255, 255, 255, 0.2)',
           borderRadius: 3,
           p: 4,
           animation: 'slideInUp 0.8s ease-out 0.6s both',

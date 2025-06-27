@@ -3,12 +3,14 @@ import { TextField, Button, Box, Typography, Container, Link as MuiLink, Card, C
 import { toast } from 'react-toastify';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; // ✅ ĐÚNG
-import { LockOutlined } from '@mui/icons-material'; // Adding an icon for the login form
+import { jwtDecode } from 'jwt-decode';
+import { LockOutlined } from '@mui/icons-material';
+import { useTheme } from '../contexts/ThemeContext';
 
 const UserLogin = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,11 +21,10 @@ const UserLogin = () => {
     try {
       const response = await api.post('/auth/login', formData);
       const token = response.data.token;
-      localStorage.setItem('token', token); // Lưu token
+      localStorage.setItem('token', token);
 
-      // Giải mã token để lấy userId
       const decodedToken = jwtDecode(token);
-      localStorage.setItem('userId', decodedToken.id); // Lưu userId từ token
+      localStorage.setItem('userId', decodedToken.id);
 
       toast.success('Login successful');
       navigate('/dashboard');
@@ -33,25 +34,39 @@ const UserLogin = () => {
   };
 
   return (
-    <Container maxWidth="xs" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', py: 4 }}>
+    <Container
+      maxWidth="xs"
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        py: 4,
+        background: isDarkMode
+          ? "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)"
+          : "linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)",
+      }}
+    >
       <Card
-        elevation={10} // Increased elevation for a more prominent card, similar to the dashboard cards on hover
+        elevation={isDarkMode ? 15 : 10}
         sx={{
           width: '100%',
-          maxWidth: 400, // Explicitly define max width for better control
-          borderRadius: 3, // More rounded corners
+          maxWidth: 400,
+          borderRadius: 3,
           overflow: 'hidden',
           position: 'relative',
-          background: 'white', // Ensure white background for clarity
-          '&::before': { // Subtle gradient border effect
+          background: isDarkMode ? 'background.paper' : 'white',
+          border: '1px solid',
+          borderColor: isDarkMode ? 'grey.800' : 'grey.200',
+          '&::before': {
             content: '""',
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
-            height: 8, // Thicker top border
-            background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)', // A specific gradient for the login theme
-            borderRadius: '12px 12px 0 0', // Match card border radius
+            height: 8,
+            background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '12px 12px 0 0',
           },
         }}
       >
@@ -62,14 +77,14 @@ const UserLogin = () => {
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 2, // Spacing between elements
-            pt: 4, // More padding at the top to account for the pseudo-element border
-            pb: 4, // More padding at the bottom
-            px: 4, // Padding on sides
+            gap: 2,
+            pt: 4,
+            pb: 4,
+            px: 4,
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-            <LockOutlined sx={{ fontSize: 60, color: 'primary.main', mb: 1 }} /> {/* Icon for visual appeal */}
+            <LockOutlined sx={{ fontSize: 60, color: 'primary.main', mb: 1 }} />
             <Typography variant="h4" fontWeight="bold" align="center" gutterBottom sx={{ color: 'text.primary' }}>
               Welcome Back!
             </Typography>
@@ -88,24 +103,25 @@ const UserLogin = () => {
             fullWidth
             margin="normal"
             autoComplete="new-email"
-            variant="outlined" // Use outlined variant for a cleaner look
+            variant="outlined"
             sx={{
+              '& .MuiInputLabel-root': { color: 'text.secondary' },
               '& .MuiOutlinedInput-root': {
-                borderRadius: 2, // Match card border radius
-                backgroundColor: 'grey.50', // Light grey background for input
-                '& fieldset': { borderColor: 'grey.300' }, // Subtle border color
+                borderRadius: 2,
+                backgroundColor: isDarkMode ? 'grey.900' : 'grey.50',
+                '& fieldset': { borderColor: isDarkMode ? 'grey.700' : 'grey.300' },
                 '&:hover fieldset': { borderColor: 'primary.main' },
                 '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px' },
+                '& input': { color: 'text.primary' },
               },
             }}
             InputProps={{
               sx: {
-                backgroundColor: 'transparent !important', // Ensure this still works for autofill
                 '& input': {
                   backgroundColor: 'transparent !important',
                   '&:-webkit-autofill': {
-                    WebkitBoxShadow: '0 0 0 1000px #f0f0f0 inset !important', // Slightly adjusted autofill color
-                    WebkitTextFillColor: 'black !important',
+                    WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #2d3748 inset !important' : '0 0 0 1000px #f0f0f0 inset !important', // Autofill background
+                    WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important', // Autofill text color
                   },
                 },
               },
@@ -121,24 +137,25 @@ const UserLogin = () => {
             fullWidth
             margin="normal"
             autoComplete="new-password"
-            variant="outlined" // Use outlined variant
+            variant="outlined"
             sx={{
+              '& .MuiInputLabel-root': { color: 'text.secondary' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                backgroundColor: 'grey.50',
-                '& fieldset': { borderColor: 'grey.300' },
+                backgroundColor: isDarkMode ? 'grey.900' : 'grey.50',
+                '& fieldset': { borderColor: isDarkMode ? 'grey.700' : 'grey.300' },
                 '&:hover fieldset': { borderColor: 'primary.main' },
                 '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px' },
+                '& input': { color: 'text.primary' },
               },
             }}
             InputProps={{
               sx: {
-                backgroundColor: 'transparent !important',
                 '& input': {
                   backgroundColor: 'transparent !important',
                   '&:-webkit-autofill': {
-                    WebkitBoxShadow: '0 0 0 1000px #f0f0f0 inset !important',
-                    WebkitTextFillColor: 'black !important',
+                    WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #2d3748 inset !important' : '0 0 0 1000px #f0f0f0 inset !important', // Autofill background
+                    WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important',
                   },
                 },
               },
@@ -150,17 +167,17 @@ const UserLogin = () => {
             fullWidth
             size="large"
             sx={{
-              mt: 2, // Margin top for spacing
-              background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)', // Gradient from admin dashboard
+              mt: 2,
+              background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
               py: 1.5,
-              borderRadius: 2.5, // Slightly more rounded than inputs
+              borderRadius: 2.5,
               fontWeight: 'bold',
               fontSize: '1rem',
               transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
               '&:hover': {
                 transform: 'translateY(-2px)',
                 boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
-                background: 'linear-gradient(45deg, #764ba2 30%, #667eea 90%)', // Subtle gradient change on hover
+                background: 'linear-gradient(45deg, #764ba2 30%, #667eea 90%)',
               },
             }}
           >
@@ -173,7 +190,7 @@ const UserLogin = () => {
             variant="body2"
             sx={{
               mt: 1,
-              alignSelf: 'center', // Changed from 'flex-end' to 'center'
+              alignSelf: 'center',
               color: 'primary.main',
               textDecoration: 'none',
               fontWeight: 500,
@@ -183,7 +200,16 @@ const UserLogin = () => {
             Forgot Password?
           </MuiLink>
 
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, pt: 2, borderTop: '1px dashed', borderColor: 'grey.300' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              mt: 3,
+              pt: 2,
+              borderTop: '1px dashed',
+              borderColor: isDarkMode ? 'grey.700' : 'grey.300',
+            }}
+          >
             <Typography variant="body2" color="text.secondary">
               Don't have an account?{' '}
               <MuiLink

@@ -35,6 +35,7 @@ import CommentIcon from "@mui/icons-material/Comment";
 import StarIcon from "@mui/icons-material/Star";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import { useTheme } from '../contexts/ThemeContext';
 
 const ContentListStudent = () => {
   const { courseId } = useParams();
@@ -51,20 +52,37 @@ const ContentListStudent = () => {
   const [ratingsList, setRatingsList] = useState({});
   const [expandedChapters, setExpandedChapters] = useState({});
 
+  // Sử dụng useTheme để lấy trạng thái dark mode
+  const { isDarkMode } = useTheme();
+
   useEffect(() => {
     fetchChapters();
     fetchProgress();
+  }, [courseId]);
+
+  useEffect(() => {
+    if (Object.keys(lessonsByChapter).length > 0) {
+      fetchRatings();
+    }
+  }, [lessonsByChapter]);
+
+  useEffect(() => {
     if (selectedLesson) {
       fetchComments(selectedLesson.id);
       fetchRatingsLists(selectedLesson.id);
     }
-    fetchRatings();
-  }, [courseId, selectedLesson]);
+  }, [selectedLesson]);
 
   const fetchChapters = async () => {
     try {
       const response = await api.get(`/api/courses/${courseId}/chapters`);
       setChapters(response.data.data);
+      // Tự động mở chương đầu tiên và tải bài học của nó
+      if (response.data.data.length > 0) {
+        const firstChapterId = response.data.data[0].id;
+        setExpandedChapters(prev => ({ ...prev, [firstChapterId]: true }));
+        fetchLessons(firstChapterId);
+      }
     } catch (error) {
       console.error("Error loading chapters:", error);
     }
@@ -78,6 +96,10 @@ const ContentListStudent = () => {
         ...prev,
         [chapterId]: response.data.data,
       }));
+      // Nếu là chương đầu tiên, chọn bài học đầu tiên trong chương đó
+      if (chapters[0]?.id === chapterId && response.data.data.length > 0 && !selectedLesson) {
+        handleLessonClick(response.data.data[0].id);
+      }
     } catch (error) {
       console.error("Error loading lessons:", error);
     }
@@ -112,10 +134,16 @@ const ContentListStudent = () => {
     try {
       const userId = localStorage.getItem("userId");
       if (userId) {
-        const lessons = Object.values(lessonsByChapter).flat();
-        const ratingPromises = lessons.map((lesson) =>
-          api.get(`/api/lessons/${lesson.id}/ratings`).then((res) => ({
-            lessonId: lesson.id,
+        // Collect all lesson IDs from all loaded chapters
+        const allLessonIds = Object.values(lessonsByChapter)
+          .flat()
+          .map(lesson => lesson.id);
+
+        if (allLessonIds.length === 0) return; // No lessons to fetch ratings for
+
+        const ratingPromises = allLessonIds.map((lessonId) =>
+          api.get(`/api/lessons/${lessonId}/ratings`).then((res) => ({
+            lessonId: lessonId,
             averageRating: res.data.averageRating,
           }))
         );
@@ -153,8 +181,11 @@ const ContentListStudent = () => {
     try {
       const res = await api.get(`/api/lessons/${lessonId}`);
       setSelectedLesson(res.data);
-      fetchComments(lessonId);
-      fetchRatingsLists(lessonId);
+      // Khi chọn bài học, cuộn lên đầu phần chi tiết bài học
+      const lessonDetailsElement = document.getElementById('lesson-details-card');
+      if (lessonDetailsElement) {
+        lessonDetailsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } catch (error) {
       console.error("Error loading lesson:", error);
     }
@@ -167,7 +198,7 @@ const ContentListStudent = () => {
         let newStatus;
         if (currentStatus === "not_started") newStatus = "in_progress";
         else if (currentStatus === "in_progress") newStatus = "completed";
-        else newStatus = "not_started";
+        else newStatus = "not_started"; // Cho phép quay lại trạng thái chưa bắt đầu
 
         await api.put(`/api/users/${userId}/lessons/${lessonId}/progress`, {
           status: newStatus,
@@ -176,7 +207,8 @@ const ContentListStudent = () => {
           ...prev,
           [lessonId]: newStatus,
         }));
-        fetchProgress();
+        // Không cần fetchProgress toàn bộ, chỉ cập nhật trạng thái cục bộ là đủ
+        // Nếu muốn đảm bảo đồng bộ hoàn toàn, có thể gọi fetchProgress() nhưng cân nhắc hiệu năng
       }
     } catch (error) {
       console.error("Error updating progress:", error);
@@ -243,8 +275,8 @@ const ContentListStudent = () => {
       const userId = localStorage.getItem("userId");
       if (userId) {
         await api.put(`/api/lessons/${lessonId}/ratings`, { rating: newRating });
-        fetchRatings(); // Cập nhật lại trung bình sao
-        fetchRatingsLists(lessonId); // Cập nhật danh sách đánh giá
+        fetchRatings(); // Cập nhật lại trung bình sao cho tất cả bài học
+        fetchRatingsLists(lessonId); // Cập nhật danh sách đánh giá cho bài học hiện tại
       }
     } catch (error) {
       console.error("Error rating lesson:", error);
@@ -252,44 +284,67 @@ const ContentListStudent = () => {
   };
 
   const getProgressIcon = (status) => {
-    switch(status) {
+    switch (status) {
       case "completed":
-        return <CheckCircleIcon sx={{ color: '#4caf50' }} />;
+        return <CheckCircleIcon sx={{ color: '#4caf50' }} />; // Green
       case "in_progress":
-        return <PendingIcon sx={{ color: '#ff9800' }} />;
+        return <PendingIcon sx={{ color: '#ff9800' }} />; // Orange
       default:
-        return <RadioButtonUncheckedIcon sx={{ color: '#9e9e9e' }} />;
+        return <RadioButtonUncheckedIcon sx={{ color: isDarkMode ? 'grey.600' : 'grey.500' }} />; // Grey, adapted for dark mode
     }
   };
 
+  // Hàm trả về màu sắc nền và viền dựa trên trạng thái và chế độ sáng/tối
   const getProgressColor = (status) => {
-    switch(status) {
-      case "completed":
-        return { 
-          bg: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
-          border: '#4caf50'
-        };
-      case "in_progress":
-        return { 
-          bg: 'linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%)',
-          border: '#ff9800'
-        };
-      default:
-        return { 
-          bg: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
-          border: '#e0e0e0'
-        };
+    if (isDarkMode) {
+      switch (status) {
+        case "completed":
+          return {
+            bg: 'linear-gradient(135deg, #1f2a20 0%, #2a3d2b 100%)', // Darker green for dark mode
+            border: '#4caf50'
+          };
+        case "in_progress":
+          return {
+            bg: 'linear-gradient(135deg, #2a241a 0%, #3d2f1b 100%)', // Darker orange for dark mode
+            border: '#ff9800'
+          };
+        default:
+          return {
+            bg: 'linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%)', // Darker grey for dark mode
+            border: 'grey.700'
+          };
+      }
+    } else {
+      // Light mode colors (original)
+      switch (status) {
+        case "completed":
+          return {
+            bg: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+            border: '#4caf50'
+          };
+        case "in_progress":
+          return {
+            bg: 'linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%)',
+            border: '#ff9800'
+          };
+        default:
+          return {
+            bg: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
+            border: '#e0e0e0'
+          };
+      }
     }
   };
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      {/* Header Section */}
+      <Box sx={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Gradient này vẫn tốt
         borderRadius: 3,
         p: 4,
         mb: 4,
-        color: 'white'
+        color: 'white' // Màu chữ vẫn trắng
       }}>
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
           📚 Nội dung khóa học
@@ -302,10 +357,11 @@ const ContentListStudent = () => {
       <Grid container spacing={4}>
         {/* Left Panel - Course Content */}
         <Grid item xs={12} lg={selectedLesson ? 8 : 12}>
-          <Card sx={{ 
+          <Card sx={{
             borderRadius: 3,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-            overflow: 'hidden'
+            boxShadow: isDarkMode ? '0 12px 48px rgba(0,0,0,0.6)' : '0 8px 32px rgba(0,0,0,0.1)',
+            overflow: 'hidden',
+            bgcolor: 'background.paper', // Sử dụng màu nền từ theme
           }}>
             <CardContent sx={{ p: 0 }}>
               <List sx={{ p: 0 }}>
@@ -314,45 +370,46 @@ const ContentListStudent = () => {
                     <ListItem
                       button
                       onClick={() => handleChapterClick(chapter.id)}
-                      sx={{ 
-                        background: 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)',
-                        borderBottom: '1px solid #e0e7ff',
+                      sx={{
+                        background: isDarkMode ? 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)' : 'linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%)',
+                        borderBottom: `1px solid ${isDarkMode ? 'grey.800' : '#e0e7ff'}`,
                         py: 2.5,
                         '&:hover': {
-                          background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                          background: isDarkMode ? 'linear-gradient(135deg, #34495e 0%, #4a667f 100%)' : 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
                           transform: 'translateX(4px)',
                           transition: 'all 0.3s ease'
                         }
                       }}
                     >
                       <ListItemAvatar>
-                        <Avatar sx={{ 
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          fontWeight: 'bold'
+                        <Avatar sx={{
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Giữ nguyên gradient này
+                          fontWeight: 'bold',
+                          color: 'white', // Chữ trắng trên avatar
                         }}>
                           {chapter.order_number}
                         </Avatar>
                       </ListItemAvatar>
-                      <ListItemText 
+                      <ListItemText
                         primary={
-                          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a237e' }}>
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                             {chapter.title}
                           </Typography>
                         }
                         secondary={
-                          <Typography variant="body2" sx={{ color: '#5c6bc0', mt: 0.5 }}>
+                          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
                             Chương {chapter.order_number}
                           </Typography>
                         }
                       />
-                      <IconButton>
+                      <IconButton sx={{ color: 'text.secondary' }}>
                         {expandedChapters[chapter.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                       </IconButton>
                     </ListItem>
-                    
+
                     <Collapse in={expandedChapters[chapter.id]} timeout="auto" unmountOnExit>
-                      <Box sx={{ background: '#fafafa' }}>
-                        {lessonsByChapter[chapter.id]?.map((lesson, lessonIndex) => {
+                      <Box sx={{ background: isDarkMode ? 'background.default' : '#fafafa' }}>
+                        {lessonsByChapter[chapter.id]?.map((lesson) => {
                           const progressColors = getProgressColor(progress[lesson.id]);
                           return (
                             <ListItem
@@ -362,13 +419,13 @@ const ContentListStudent = () => {
                               sx={{
                                 background: progressColors.bg,
                                 borderLeft: `4px solid ${progressColors.border}`,
-                                borderBottom: '1px solid rgba(0,0,0,0.05)',
+                                borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
                                 mx: 2,
                                 my: 1,
                                 borderRadius: 2,
                                 '&:hover': {
                                   transform: 'translateX(8px)',
-                                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                  boxShadow: isDarkMode ? '0 6px 24px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.1)',
                                   transition: 'all 0.3s ease'
                                 }
                               }}
@@ -378,7 +435,7 @@ const ContentListStudent = () => {
                               </ListItemAvatar>
                               <ListItemText
                                 primary={
-                                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                                  <Typography variant="subtitle1" sx={{ fontWeight: 500, color: 'text.primary' }}>
                                     Bài {lesson.order_number}: {lesson.title}
                                   </Typography>
                                 }
@@ -391,10 +448,18 @@ const ContentListStudent = () => {
                                       onChange={(event, newValue) => {
                                         if (newValue) handleRateLesson(lesson.id, newValue);
                                       }}
-                                      readOnly={!progress[lesson.id] === "completed"}
+                                      readOnly={!progress[lesson.id] === "completed"} // Only allow rating if completed
                                       size="small"
+                                      sx={{
+                                        '& .MuiRating-iconFilled': {
+                                            color: '#ffb400', // Gold color for filled stars
+                                        },
+                                        '& .MuiRating-iconEmpty': {
+                                            color: isDarkMode ? 'grey.700' : 'grey.400', // Empty stars adapted for dark mode
+                                        },
+                                      }}
                                     />
-                                    <Typography variant="caption" sx={{ color: '#666' }}>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                       ({ratings[lesson.id]?.toFixed(1) || '0.0'})
                                     </Typography>
                                   </Box>
@@ -424,8 +489,8 @@ const ContentListStudent = () => {
                                   {progress[lesson.id] === "completed"
                                     ? "Hoàn thành"
                                     : progress[lesson.id] === "in_progress"
-                                    ? "Đang học"
-                                    : "Bắt đầu"}
+                                      ? "Đang học"
+                                      : "Bắt đầu"}
                                 </Button>
                               </Box>
                             </ListItem>
@@ -443,22 +508,24 @@ const ContentListStudent = () => {
         {/* Right Panel - Lesson Details */}
         {selectedLesson && (
           <Grid item xs={12} lg={4}>
-            <Card sx={{ 
+            <Card id="lesson-details-card" sx={{
               borderRadius: 3,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              boxShadow: isDarkMode ? '0 12px 48px rgba(0,0,0,0.6)' : '0 8px 32px rgba(0,0,0,0.1)',
               position: 'sticky',
-              top: 20
+              top: 20,
+              bgcolor: 'background.paper', // Sử dụng màu nền từ theme
             }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                  <Avatar sx={{ 
+                  <Avatar sx={{
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     width: 48,
-                    height: 48
+                    height: 48,
+                    color: 'white',
                   }}>
                     <VideoLibraryIcon />
                   </Avatar>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1a237e' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                     {selectedLesson.title}
                   </Typography>
                 </Box>
@@ -466,10 +533,10 @@ const ContentListStudent = () => {
                 {/* Video Section */}
                 <Box sx={{ mb: 4 }}>
                   {selectedLesson.video_url ? (
-                    <Box sx={{ 
+                    <Box sx={{
                       borderRadius: 2,
                       overflow: 'hidden',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                      boxShadow: isDarkMode ? '0 6px 30px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.1)'
                     }}>
                       <video
                         src={selectedLesson.video_url}
@@ -478,14 +545,15 @@ const ContentListStudent = () => {
                       />
                     </Box>
                   ) : (
-                    <Paper sx={{ 
-                      p: 4, 
+                    <Paper sx={{
+                      p: 4,
                       textAlign: 'center',
-                      background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
-                      borderRadius: 2
+                      background: isDarkMode ? 'linear-gradient(135deg, #333 0%, #444 100%)' : 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
+                      borderRadius: 2,
+                      color: 'text.secondary', // Màu chữ thích ứng
                     }}>
-                      <VideoLibraryIcon sx={{ fontSize: 48, color: '#9e9e9e', mb: 2 }} />
-                      <Typography color="text.secondary">
+                      <VideoLibraryIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                      <Typography color="inherit">
                         Không có video
                       </Typography>
                     </Paper>
@@ -493,10 +561,10 @@ const ContentListStudent = () => {
                 </Box>
 
                 {/* Ratings Section */}
-                <Paper sx={{ p: 3, mb: 3, borderRadius: 2, background: '#fafafa' }}>
+                <Paper sx={{ p: 3, mb: 3, borderRadius: 2, background: isDarkMode ? 'background.default' : '#fafafa' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <StarIcon sx={{ color: '#ff9800' }} />
-                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                       Đánh giá từ người dùng
                     </Typography>
                   </Box>
@@ -505,20 +573,24 @@ const ContentListStudent = () => {
                       {ratingsList[selectedLesson.id].map((rating) => (
                         <ListItem key={rating.id} sx={{ px: 0, py: 1 }}>
                           <ListItemAvatar>
-                            <Avatar sx={{ width: 32, height: 32, fontSize: '0.875rem' }}>
+                            <Avatar sx={{
+                              width: 32, height: 32, fontSize: '0.875rem',
+                              bgcolor: isDarkMode ? 'primary.dark' : 'primary.light', // Màu avatar thích ứng
+                              color: 'primary.contrastText', // Màu chữ thích ứng
+                            }}>
                               {rating.User?.username?.charAt(0) || "?"}
                             </Avatar>
                           </ListItemAvatar>
                           <ListItemText
                             primary={
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="subtitle2">
+                                <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
                                   {rating.User?.username || "Ẩn danh"}
                                 </Typography>
-                                <Chip 
-                                  label={`${rating.rating} ⭐`} 
+                                <Chip
+                                  label={`${rating.rating} ⭐`}
                                   size="small"
-                                  sx={{ backgroundColor: '#fff3e0', color: '#f57c00' }}
+                                  sx={{ backgroundColor: isDarkMode ? '#614d1f' : '#fff3e0', color: isDarkMode ? '#ffeb3b' : '#f57c00' }}
                                 />
                               </Box>
                             }
@@ -539,15 +611,15 @@ const ContentListStudent = () => {
                 </Paper>
 
                 {/* Comments Section */}
-                <Paper sx={{ p: 3, borderRadius: 2, background: '#fafafa' }}>
+                <Paper sx={{ p: 3, borderRadius: 2, background: isDarkMode ? 'background.default' : '#fafafa' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                     <CommentIcon sx={{ color: '#2196f3' }} />
-                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                       Bình luận
                     </Typography>
                     <Badge badgeContent={comments.length} color="secondary" />
                   </Box>
-                  
+
                   <Box component="form" onSubmit={handleAddComment} sx={{ mb: 3 }}>
                     <TextField
                       fullWidth
@@ -557,21 +629,40 @@ const ContentListStudent = () => {
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Chia sẻ suy nghĩ của bạn về bài học này..."
                       variant="outlined"
-                      sx={{ 
+                      sx={{
                         mb: 2,
                         '& .MuiOutlinedInput-root': {
-                          borderRadius: 2
-                        }
+                          borderRadius: 2,
+                          bgcolor: isDarkMode ? 'grey.800' : 'white', // Nền input thích ứng
+                          color: 'text.primary', // Màu chữ input
+                          '& fieldset': {
+                            borderColor: isDarkMode ? 'grey.700' : 'grey.300', // Viền input
+                          },
+                          '&:hover fieldset': {
+                            borderColor: isDarkMode ? 'primary.light' : 'primary.main',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: 'primary.main',
+                          },
+                        },
+                        '& .MuiInputBase-input': {
+                            color: 'text.primary', // Ensure text color is primary
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: 'text.secondary', // Label color
+                        },
                       }}
+                      InputLabelProps={{ shrink: true }} // Luôn hiển thị label trên input
                     />
-                    <Button 
-                      type="submit" 
-                      variant="contained" 
+                    <Button
+                      type="submit"
+                      variant="contained"
                       fullWidth
                       sx={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Giữ nguyên gradient
                         borderRadius: 2,
-                        py: 1.5
+                        py: 1.5,
+                        color: 'white', // Chữ trắng
                       }}
                     >
                       Gửi bình luận
@@ -582,13 +673,17 @@ const ContentListStudent = () => {
                     {comments.map((comment) => (
                       <ListItem key={comment.id} sx={{ px: 0, alignItems: 'flex-start' }}>
                         <ListItemAvatar>
-                          <Avatar sx={{ width: 32, height: 32, fontSize: '0.875rem' }}>
+                          <Avatar sx={{
+                            width: 32, height: 32, fontSize: '0.875rem',
+                            bgcolor: isDarkMode ? 'primary.dark' : 'primary.light', // Màu avatar thích ứng
+                            color: 'primary.contrastText', // Màu chữ thích ứng
+                          }}>
                             {comment.User?.username?.charAt(0) || "A"}
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText
                           primary={
-                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5, color: 'text.primary' }}>
                               {comment.User?.username || "Anonymous"}
                             </Typography>
                           }
@@ -601,7 +696,29 @@ const ContentListStudent = () => {
                                   fullWidth
                                   multiline
                                   rows={2}
-                                  sx={{ mb: 1 }}
+                                  sx={{
+                                    mb: 1,
+                                    '& .MuiOutlinedInput-root': {
+                                      borderRadius: 2,
+                                      bgcolor: isDarkMode ? 'grey.800' : 'white', // Nền input thích ứng
+                                      color: 'text.primary', // Màu chữ input
+                                      '& fieldset': {
+                                        borderColor: isDarkMode ? 'grey.700' : 'grey.300', // Viền input
+                                      },
+                                      '&:hover fieldset': {
+                                        borderColor: isDarkMode ? 'primary.light' : 'primary.main',
+                                      },
+                                      '&.Mui-focused fieldset': {
+                                        borderColor: 'primary.main',
+                                      },
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary', // Ensure text color is primary
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary', // Label color
+                                    },
+                                  }}
                                   variant="outlined"
                                   size="small"
                                 />
@@ -610,7 +727,10 @@ const ContentListStudent = () => {
                                     type="submit"
                                     variant="contained"
                                     size="small"
-                                    sx={{ minWidth: 60 }}
+                                    sx={{
+                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        color: 'white',
+                                    }}
                                   >
                                     Lưu
                                   </Button>
@@ -618,14 +738,21 @@ const ContentListStudent = () => {
                                     onClick={() => setEditingComment(null)}
                                     variant="outlined"
                                     size="small"
-                                    sx={{ minWidth: 60 }}
+                                    sx={{
+                                        borderColor: isDarkMode ? 'grey.700' : 'grey.400',
+                                        color: 'text.primary',
+                                        '&:hover': {
+                                            borderColor: isDarkMode ? 'primary.light' : 'primary.main',
+                                            bgcolor: isDarkMode ? 'grey.800' : 'inherit',
+                                        }
+                                    }}
                                   >
                                     Hủy
                                   </Button>
                                 </Box>
                               </Box>
                             ) : (
-                              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                              <Typography variant="body2" sx={{ mt: 0.5, color: 'text.primary' }}>
                                 {comment.content}
                               </Typography>
                             )
@@ -636,13 +763,14 @@ const ContentListStudent = () => {
                             <IconButton
                               onClick={() => handleEditComment(comment)}
                               size="small"
-                              sx={{ mr: 0.5 }}
+                              sx={{ mr: 0.5, color: 'text.secondary' }} // Màu icon thích ứng
                             >
                               <EditIcon fontSize="small" />
                             </IconButton>
                             <IconButton
                               onClick={() => handleDeleteComment(comment.id)}
                               size="small"
+                              sx={{ color: 'error.main' }} // Icon xóa màu đỏ
                             >
                               <DeleteIcon fontSize="small" />
                             </IconButton>

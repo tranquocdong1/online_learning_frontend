@@ -24,14 +24,17 @@ import {
   ViewList as ListViewIcon,
 } from "@mui/icons-material";
 import api from "../services/api";
+import { useTheme } from '../contexts/ThemeContext';
 
 const CategoryListStudent = () => {
   const [categories, setCategories] = useState([]);
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("grid"); // grid or list
+  const [viewMode, setViewMode] = useState("grid");
   const [selectedFilter, setSelectedFilter] = useState("all");
+
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -78,14 +81,17 @@ const CategoryListStudent = () => {
     <Grid container spacing={3}>
       {[...Array(6)].map((_, index) => (
         <Grid item xs={12} sm={6} md={4} key={index}>
-          <Card sx={{ height: 200 }}>
+          <Card sx={{ height: 200,
+            bgcolor: isDarkMode ? 'background.paper' : 'background.default',
+            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider',
+          }}>
             <CardContent>
-              <Skeleton variant="text" width="80%" height={32} />
-              <Skeleton variant="text" width="100%" height={20} sx={{ mt: 1 }} />
-              <Skeleton variant="text" width="60%" height={20} />
+              <Skeleton variant="text" width="80%" height={32} sx={{ bgcolor: isDarkMode ? 'grey.800' : 'grey.300' }} />
+              <Skeleton variant="text" width="100%" height={20} sx={{ mt: 1, bgcolor: isDarkMode ? 'grey.700' : 'grey.200' }} />
+              <Skeleton variant="text" width="60%" height={20} sx={{ bgcolor: isDarkMode ? 'grey.700' : 'grey.200' }} />
               <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-                <Skeleton variant="rectangular" width={60} height={24} sx={{ borderRadius: 1 }} />
-                <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 1 }} />
+                <Skeleton variant="rectangular" width={60} height={24} sx={{ borderRadius: 1, bgcolor: isDarkMode ? 'grey.600' : 'grey.100' }} />
+                <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 1, bgcolor: isDarkMode ? 'grey.600' : 'grey.100' }} />
               </Box>
             </CardContent>
           </Card>
@@ -104,7 +110,7 @@ const CategoryListStudent = () => {
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           "&:hover": {
             transform: "translateY(-8px)",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
+            boxShadow: isDarkMode ? "0 12px 40px rgba(0,0,0,0.4)" : "0 12px 40px rgba(0,0,0,0.15)",
             "& .category-icon": {
               transform: "scale(1.1)",
               color: "primary.main",
@@ -112,8 +118,10 @@ const CategoryListStudent = () => {
           },
           borderRadius: 2,
           border: "1px solid",
-          borderColor: "divider",
-          background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+          borderColor: isDarkMode ? "rgba(255, 255, 255, 0.1)" : "divider",
+          background: isDarkMode
+            ? "background.paper" 
+            : "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
         }}
       >
         <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
@@ -152,8 +160,8 @@ const CategoryListStudent = () => {
                 sx={{
                   fontSize: "0.75rem",
                   height: 20,
-                  bgcolor: "primary.50",
-                  color: "primary.600",
+                  bgcolor: isDarkMode ? "primary.dark" : "primary.50",
+                  color: isDarkMode ? "primary.light" : "primary.600",
                 }}
               />
             </Box>
@@ -188,7 +196,6 @@ const CategoryListStudent = () => {
               variant="body2"
               sx={{
                 color: "primary.main",
-                fontWeight: 600,
                 "&:hover": { textDecoration: "underline" },
               }}
             >
@@ -235,7 +242,7 @@ const CategoryListStudent = () => {
           borderRadius: 2,
           border: "1px solid",
           borderColor: "divider",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.2)" : "0 2px 8px rgba(0,0,0,0.04)",
         }}
       >
         <Grid container spacing={3} alignItems="center">
@@ -251,6 +258,20 @@ const CategoryListStudent = () => {
                     <SearchIcon color="action" />
                   </InputAdornment>
                 ),
+                sx: {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : undefined,
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.4)' : undefined,
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: 'primary.main',
+                  },
+                  "& .MuiInputBase-input": {
+                    color: "text.primary",
+                  },
+                },
               }}
               sx={{
                 "& .MuiOutlinedInput-root": {
@@ -266,7 +287,9 @@ const CategoryListStudent = () => {
                 color={viewMode === "grid" ? "primary" : "default"}
                 sx={{
                   border: "1px solid",
-                  borderColor: viewMode === "grid" ? "primary.main" : "divider",
+                  borderColor: viewMode === "grid"
+                    ? "primary.main"
+                    : (isDarkMode ? "rgba(255, 255, 255, 0.1)" : "divider"),
                 }}
               >
                 <GridViewIcon />
@@ -276,7 +299,9 @@ const CategoryListStudent = () => {
                 color={viewMode === "list" ? "primary" : "default"}
                 sx={{
                   border: "1px solid",
-                  borderColor: viewMode === "list" ? "primary.main" : "divider",
+                  borderColor: viewMode === "list"
+                    ? "primary.main"
+                    : (isDarkMode ? "rgba(255, 255, 255, 0.1)" : "divider"),
                 }}
               >
                 <ListViewIcon />

@@ -5,18 +5,20 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Container, // Import Container for proper centering
-  Card,      // Import Card for the wrapper
-  CardContent, // Import CardContent for padding
+  Container,
+  Card,
+  CardContent,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import api from "../services/api";
-import { AdminPanelSettings } from "@mui/icons-material"; // Icon for Admin Login
+import { AdminPanelSettings } from "@mui/icons-material";
+import { useTheme } from '../contexts/ThemeContext';
 
 const AdminLogin = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { isDarkMode } = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,24 +37,38 @@ const AdminLogin = ({ onLogin }) => {
   };
 
   return (
-    <Container maxWidth="xs" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', py: 4 }}>
+    <Container
+      maxWidth="xs"
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        py: 4,
+        background: isDarkMode
+          ? "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)"
+          : "linear-gradient(135deg, #f8f8f8 0%, #e0e0e0 100%)",
+      }}
+    >
       <Card
-        elevation={10} // Prominent shadow for consistency
+        elevation={isDarkMode ? 15 : 10}
         sx={{
           width: '100%',
           maxWidth: 400,
-          borderRadius: 3, // Rounded corners
+          borderRadius: 3,
           overflow: 'hidden',
           position: 'relative',
-          background: 'white',
-          '&::before': { // Gradient top border, distinct but matching theme
+          background: isDarkMode ? 'background.paper' : 'white',
+          border: '1px solid',
+          borderColor: isDarkMode ? 'grey.800' : 'grey.200',
+          '&::before': {
             content: '""',
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
             height: 8,
-            background: 'linear-gradient(90deg, #764ba2 0%, #667eea 100%)', // Unique gradient for admin login
+            background: 'linear-gradient(90deg, #764ba2 0%, #667eea 100%)',
             borderRadius: '12px 12px 0 0',
           },
         }}
@@ -64,8 +80,8 @@ const AdminLogin = ({ onLogin }) => {
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 2, // Spacing between elements
-            pt: 4, // Padding to account for the top border
+            gap: 2,
+            pt: 4,
             pb: 4,
             px: 4,
           }}
@@ -90,16 +106,29 @@ const AdminLogin = ({ onLogin }) => {
             variant="outlined"
             autoComplete="off"
             sx={{
+              '& .MuiInputLabel-root': { color: 'text.secondary' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                backgroundColor: 'grey.50',
-                '& fieldset': { borderColor: 'grey.300' },
-                '&:hover fieldset': { borderColor: 'primary.dark' }, // Using primary.dark for input accents
+                backgroundColor: isDarkMode ? 'grey.900' : 'grey.50',
+                '& fieldset': { borderColor: isDarkMode ? 'grey.700' : 'grey.300' },
+                '&:hover fieldset': { borderColor: 'primary.dark' },
                 '&.Mui-focused fieldset': { borderColor: 'primary.dark', borderWidth: '2px' },
+                '& input': { color: 'text.primary' },
               },
             }}
             InputLabelProps={{
                 shrink: true,
+            }}
+            InputProps={{
+              sx: {
+                '& input': {
+                  backgroundColor: 'transparent !important',
+                  '&:-webkit-autofill': {
+                    WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #2d3748 inset !important' : '0 0 0 1000px #f0f0f0 inset !important', // Autofill background
+                    WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important',
+                  },
+                },
+              },
             }}
           />
           <TextField
@@ -113,16 +142,29 @@ const AdminLogin = ({ onLogin }) => {
             variant="outlined"
             autoComplete="new-password"
             sx={{
+              '& .MuiInputLabel-root': { color: 'text.secondary' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                backgroundColor: 'grey.50',
-                '& fieldset': { borderColor: 'grey.300' },
+                backgroundColor: isDarkMode ? 'grey.900' : 'grey.50',
+                '& fieldset': { borderColor: isDarkMode ? 'grey.700' : 'grey.300' },
                 '&:hover fieldset': { borderColor: 'primary.dark' },
                 '&.Mui-focused fieldset': { borderColor: 'primary.dark', borderWidth: '2px' },
+                '& input': { color: 'text.primary' },
               },
             }}
             InputLabelProps={{
                 shrink: true,
+            }}
+            InputProps={{
+              sx: {
+                '& input': {
+                  backgroundColor: 'transparent !important',
+                  '&:-webkit-autofill': {
+                    WebkitBoxShadow: isDarkMode ? '0 0 0 1000px #2d3748 inset !important' : '0 0 0 1000px #f0f0f0 inset !important', // Autofill background
+                    WebkitTextFillColor: isDarkMode ? 'white !important' : 'black !important',
+                  },
+                },
+              },
             }}
           />
           <Button
@@ -133,7 +175,7 @@ const AdminLogin = ({ onLogin }) => {
             disabled={loading}
             sx={{
               mt: 2,
-              background: 'linear-gradient(45deg, #764ba2 30%, #667eea 90%)', // Gradient from main admin header
+              background: 'linear-gradient(45deg, #764ba2 30%, #667eea 90%)',
               py: 1.5,
               borderRadius: 2.5,
               fontWeight: 'bold',
@@ -142,7 +184,7 @@ const AdminLogin = ({ onLogin }) => {
               '&:hover': {
                 transform: 'translateY(-2px)',
                 boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
-                background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)', // Subtle gradient change on hover
+                background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
               },
             }}
           >
