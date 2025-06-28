@@ -25,8 +25,8 @@ import CourseManagementPage from "./pages/CourseManagementPage";
 import CourseContentPage from "./pages/CourseContentPage";
 import CourseListStudent from "./components/CourseListStudent";
 import ContentListStudent from "./components/ContentListStudent";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-// Component con để sử dụng theme context
 const AppContent = () => {
   const { isDarkMode } = useTheme();
   
@@ -44,22 +44,83 @@ const AppContent = () => {
           }}
         />
         <Routes>
+          {/* Các route không yêu cầu đăng nhập */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-          <Route path="/admin/users" element={<UserManagementPage />} />
-          <Route path="/admin/categories" element={<CategoryManagementPage />} />
-          <Route path="/admin/courses" element={<CourseManagementPage />} />
-          <Route path="/admin/courses/:courseId/content" element={<CourseContentPage />} />
-          <Route path="/courses" element={<CourseListStudent />} />
-          <Route path="/courses/:courseId/content" element={<ContentListStudent />} />
           <Route path="/register" element={<UserRegisterPage />} />
           <Route path="/login" element={<UserLoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/profile" element={<UserProfilePage />} />
-          <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/" element={<CourseListStudent />} />
+          <Route path="/courses" element={<CourseListStudent />} />
+          <Route path="/courses/:courseId/content" element={<ContentListStudent />} />
+
+          {/* Các route yêu cầu đăng nhập */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute>
+                <ChangePasswordPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Các route admin */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute>
+                <UserManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/categories"
+            element={
+              <ProtectedRoute>
+                <CategoryManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/courses"
+            element={
+              <ProtectedRoute>
+                <CourseManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/courses/:courseId/content"
+            element={
+              <ProtectedRoute>
+                <CourseContentPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
     </MuiThemeProvider>
