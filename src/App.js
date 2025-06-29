@@ -52,7 +52,7 @@ const AppContent = () => {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/" element={<CourseListStudent />} />
           <Route path="/courses" element={<CourseListStudent />} />
-          <Route path="/courses/:courseId/content" element={<ContentListStudent />} />
+          {/* <Route path="/courses/:courseId/content" element={<ContentListStudent />} /> */}
 
           {/* Các route yêu cầu đăng nhập */}
           <Route
@@ -76,6 +76,14 @@ const AppContent = () => {
             element={
               <ProtectedRoute>
                 <ChangePasswordPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses/:courseId/content"
+            element={
+              <ProtectedRoute>
+                <ContentListStudent />
               </ProtectedRoute>
             }
           />
