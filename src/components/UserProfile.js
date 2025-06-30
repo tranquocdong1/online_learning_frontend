@@ -32,8 +32,9 @@ const UserProfile = () => {
     avatar: null,
   });
   const [loading, setLoading] = useState(true);
-  const [tabValue, setTabValue] = useState(0); // Thêm state cho Tabs
-  const [progressHistory, setProgressHistory] = useState([]); // Thêm state cho lịch sử học tập
+  const [tabValue, setTabValue] = useState(0);
+  const [progressHistory, setProgressHistory] = useState([]);
+  const [previewAvatar, setPreviewAvatar] = useState(null); // Thêm state cho preview avatar
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
 
@@ -47,6 +48,7 @@ const UserProfile = () => {
         full_name: response.data.full_name,
         avatar: null,
       });
+      setPreviewAvatar(null); // Reset preview khi tải lại profile
     } catch (error) {
       toast.error("Không tải được hồ sơ");
       if (error.response?.status === 401) {
@@ -60,7 +62,7 @@ const UserProfile = () => {
 
   const fetchProgressHistory = async () => {
     try {
-      const userId = localStorage.getItem("userId"); // Giả sử userId được lưu trong localStorage
+      const userId = localStorage.getItem("userId");
       const response = await api.get(`/api/users/${userId}/progress`);
       setProgressHistory(response.data.data || []);
     } catch (error) {
@@ -77,14 +79,16 @@ const UserProfile = () => {
   const handleChange = (e) => {
     if (e.target.name === "avatar") {
       const file = e.target.files[0];
-      if (
-        file &&
-        !["image/jpeg", "image/jpg", "image/png"].includes(file.type)
-      ) {
-        toast.error("Chỉ chấp nhận hình ảnh JPEG, JPG hoặc PNG");
-        return;
+      if (file) {
+        if (!["image/jpeg", "image/jpg", "image/png"].includes(file.type)) {
+          toast.error("Chỉ chấp nhận hình ảnh JPEG, JPG hoặc PNG");
+          return;
+        }
+        // Tạo URL preview
+        const previewURL = URL.createObjectURL(file);
+        setPreviewAvatar(previewURL);
+        setFormData({ ...formData, avatar: file });
       }
-      setFormData({ ...formData, avatar: file });
     } else {
       setFormData({ ...formData, [e.target.name]: e.target.value });
     }
@@ -110,7 +114,7 @@ const UserProfile = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Cập nhật hồ sơ thành công");
-      await fetchProfile();
+      await fetchProfile(); // Cập nhật lại profile sau khi upload
     } catch (error) {
       toast.error(error.response?.data?.message || "Cập nhật thất bại");
     } finally {
@@ -175,7 +179,6 @@ const UserProfile = () => {
           justifyContent: "center",
         }}
       >
-        {/* Header */}
         <Box sx={{ mb: 5, textAlign: "center" }}>
           <Typography
             variant="h3"
@@ -200,7 +203,6 @@ const UserProfile = () => {
           </Typography>
         </Box>
 
-        {/* Form Card */}
         <Fade in={true} timeout={700}>
           <Paper
             component="form"
@@ -223,7 +225,6 @@ const UserProfile = () => {
               width: "100%",
             }}
           >
-            {/* Tabs */}
             <Tabs
               value={tabValue}
               onChange={handleTabChange}
@@ -239,19 +240,18 @@ const UserProfile = () => {
               <Tab label="Lịch sử học tập" />
             </Tabs>
 
-            {/* Content based on Tab */}
             {tabValue === 0 && (
               <>
-                {/* Avatar Display */}
                 <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
                   {loading ? (
                     <CircularProgress color="primary" size={60} />
                   ) : (
                     <Avatar
                       src={
-                        profile.avatar
+                        previewAvatar ||
+                        (profile.avatar
                           ? `http://localhost:5000${profile.avatar}`
-                          : ""
+                          : "")
                       }
                       alt={profile.full_name || "Ảnh đại diện"}
                       sx={{
@@ -271,7 +271,7 @@ const UserProfile = () => {
                         },
                       }}
                     >
-                      {!profile.avatar && (
+                      {!profile.avatar && !previewAvatar && (
                         <Person
                           sx={{
                             fontSize: 80,
@@ -283,7 +283,6 @@ const UserProfile = () => {
                   )}
                 </Box>
 
-                {/* Email Display (Read-only) */}
                 <Box
                   sx={{
                     display: "flex",
@@ -307,7 +306,6 @@ const UserProfile = () => {
                   </Typography>
                 </Box>
 
-                {/* Editable Fields */}
                 <TextField
                   label="Tên người dùng"
                   name="username"
@@ -346,18 +344,23 @@ const UserProfile = () => {
                   sx={{ mb: 3 }}
                 />
 
-                {/* Avatar Upload (Tạm thời bỏ qua logic upload) */}
-                <Box sx={{ mb: 4 }}>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 1 }}
-                  >
-                    Tính năng tải ảnh sẽ được cập nhật sau.
-                  </Typography>
-                </Box>
+                <TextField
+                  type="file"
+                  name="avatar"
+                  onChange={handleChange}
+                  fullWidth
+                  InputProps={{
+                    ...commonInputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <UploadFile sx={{ color: "primary.main" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  inputProps={{ accept: "image/jpeg,image/jpg,image/png" }} // Chỉ chấp nhận các định dạng hình ảnh
+                  sx={{ mb: 4 }}
+                />
 
-                {/* Submit Button */}
                 <Button
                   type="submit"
                   variant="contained"
@@ -397,7 +400,6 @@ const UserProfile = () => {
                   )}
                 </Button>
 
-                {/* Back to Dashboard */}
                 <Button
                   onClick={() => navigate("/courses")}
                   variant="text"
@@ -425,7 +427,6 @@ const UserProfile = () => {
 
             {tabValue === 1 && (
               <Box sx={{ mt: 3 }}>
-                {/* Header với icon và gradient */}
                 <Box
                   sx={{
                     display: "flex",
@@ -496,7 +497,6 @@ const UserProfile = () => {
                           },
                         }}
                       >
-                        {/* Status indicator bar */}
                         <Box
                           sx={{
                             position: "absolute",
@@ -513,7 +513,6 @@ const UserProfile = () => {
                           }}
                         />
 
-                        {/* Content */}
                         <Box
                           sx={{
                             display: "flex",
@@ -521,7 +520,6 @@ const UserProfile = () => {
                             gap: 2,
                           }}
                         >
-                          {/* Icon */}
                           <Box
                             sx={{
                               display: "flex",
@@ -560,7 +558,6 @@ const UserProfile = () => {
                             </Typography>
                           </Box>
 
-                          {/* Main content */}
                           <Box sx={{ flex: 1, minWidth: 0 }}>
                             <Typography
                               variant="h6"
@@ -574,7 +571,6 @@ const UserProfile = () => {
                               {prog.Lesson.title}
                             </Typography>
 
-                            {/* Status badge */}
                             <Box
                               sx={{
                                 display: "flex",
@@ -629,7 +625,6 @@ const UserProfile = () => {
                               </Box>
                             </Box>
 
-                            {/* Completion date */}
                             {prog.completed_at && (
                               <Box
                                 sx={{
@@ -674,7 +669,6 @@ const UserProfile = () => {
                     ))}
                   </Box>
                 ) : (
-                  /* Empty state với thiết kế đẹp */
                   <Box
                     sx={{
                       display: "flex",

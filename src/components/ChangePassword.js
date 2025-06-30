@@ -35,7 +35,7 @@ const ChangePassword = () => {
     try {
       await api.put("/users/change-password", formData);
       toast.success("Đổi mật khẩu thành công");
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       toast.error(error.response?.data?.message || "Đổi mật khẩu thất bại");
     }
