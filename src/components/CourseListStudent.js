@@ -1,3 +1,4 @@
+//components/CourseListStudent.js
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -35,11 +36,11 @@ import { toast } from 'react-toastify';
 import api from "../services/api";
 import ImageSlider from "./ImageSlider";
 import UserMenu from "./UserMenu";
-import ThemeToggleButton from "../components/ThemeToggleButton"; // Thêm import ThemeToggleButton
-import { useTheme } from "../contexts/ThemeContext"; // Thêm import ThemeContext
+import ThemeToggleButton from "../components/ThemeToggleButton";
+import { useTheme } from "../contexts/ThemeContext";
 
 const CourseListStudent = () => {
-  const { isDarkMode } = useTheme(); // Lấy trạng thái isDarkMode từ ThemeContext
+  const { isDarkMode } = useTheme();
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,40 +72,81 @@ const CourseListStudent = () => {
     }
   };
 
-  const fetchCourses = async () => {
-    setLoading(true);
-    try {
-      const params = { page: currentPage, limit };
-      if (selectedCategory) params.categoryId = selectedCategory;
-      if (searchKeyword) params.search = searchKeyword;
+  // Helper function to parse duration string (e.g., "1 giờ 30 phút" to seconds)
+  const parseDurationToSeconds = (durationString) => {
+    if (!durationString) return 0;
+    let totalSeconds = 0;
+    const hoursMatch = durationString.match(/(\d+)\s*giờ/);
+    const minutesMatch = durationString.match(/(\d+)\s*phút/);
 
-      const response = await api.get("/api/public-courses", { params });
-      const coursesWithDetails = await Promise.all(
-        response.data.data.map(async (course) => {
-          const chapters = await api.get(`/api/courses/${course.id}/chapters`);
-          const lessonsCount = chapters.data.data.reduce((total, chapter) => {
-            return total + (chapter.lesson_count || 0);
-          }, 0);
-
-          const progressResponse = await api.get(`/api/courses/${course.id}/progress`);
-          const enrolledUsers = progressResponse.data.data?.enrolledUsers || 0;
-
-          return {
-            ...course,
-            lessonCount: lessonsCount,
-            enrolledUsers: enrolledUsers,
-          };
-        })
-      );
-      setCourses(coursesWithDetails);
-      setTotalPages(response.data.pages);
-      setTotalCourses(response.data.total);
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-    } finally {
-      setLoading(false);
+    if (hoursMatch) {
+      totalSeconds += parseInt(hoursMatch[1], 10) * 3600;
     }
+    if (minutesMatch) {
+      totalSeconds += parseInt(minutesMatch[1], 10) * 60;
+    }
+    return totalSeconds;
   };
+
+  const formatSecondsToDuration = (totalSeconds) => {
+    if (totalSeconds === 0) return "0 phút";
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    let formatted = [];
+    if (hours > 0) formatted.push(`${hours} giờ`);
+    if (minutes > 0 || (hours === 0 && minutes === 0 && totalSeconds > 0)) formatted.push(`${minutes} phút`);
+    if (seconds > 0 || (hours === 0 && minutes === 0)) formatted.push(`${seconds} giây`); // Thêm giây
+
+    return formatted.join(" ") || "0 giây"; // Đảm bảo luôn có giá trị
+  };
+
+
+  const fetchCourses = async () => {
+  setLoading(true);
+  try {
+    const params = { page: currentPage, limit };
+    if (selectedCategory) params.categoryId = selectedCategory;
+    if (searchKeyword) params.search = searchKeyword;
+
+    const response = await api.get("/api/public-courses", { params });
+    const coursesWithDetails = await Promise.all(
+      response.data.data.map(async (course) => {
+        const chaptersResponse = await api.get(`/api/courses/${course.id}/chapters`);
+        const chapters = chaptersResponse.data.data;
+
+        const lessonsCount = chapters.reduce((total, chapter) => {
+          return total + (chapter.lesson_count || 0);
+        }, 0);
+
+        // *** THAY ĐỔI Ở ĐÂY: SỬ DỤNG total_duration_seconds ***
+        const totalCourseDurationSeconds = chapters.reduce((total, chapter) => {
+          return total + (chapter.total_duration_seconds || 0); // Lấy giá trị số
+        }, 0);
+
+        const formattedTotalDuration = formatSecondsToDuration(totalCourseDurationSeconds); // Định dạng ở frontend
+
+        const progressResponse = await api.get(`/api/courses/${course.id}/progress`);
+        const enrolledUsers = progressResponse.data.data?.enrolledUsers || 0;
+
+        return {
+          ...course,
+          lessonCount: lessonsCount,
+          enrolledUsers: enrolledUsers,
+          totalDuration: formattedTotalDuration,
+        };
+      })
+    );
+    setCourses(coursesWithDetails);
+    setTotalPages(response.data.pages);
+    setTotalCourses(response.data.total);
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handlePageChange = (event, page) => setCurrentPage(page);
 
@@ -156,164 +198,170 @@ const CourseListStudent = () => {
 
   // Course Card Component
   const CourseCard = ({ course, index }) => (
-    <Fade in={true} timeout={300 + index * 100}>
-      <Card
-        sx={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          cursor: "pointer",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          "&:hover": {
-            transform: "translateY(-12px)",
-            boxShadow: isDarkMode ? "0 20px 40px rgba(0,0,0,0.3)" : "0 20px 40px rgba(0,0,0,0.15)",
-            "& .course-thumbnail": {
-              transform: "scale(1.05)",
-            },
-            "& .play-button": {
-              opacity: 1,
-              transform: "scale(1)",
-            },
+  <Fade in={true} timeout={300 + index * 100}>
+    <Card
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        cursor: "pointer",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        "&:hover": {
+          transform: "translateY(-12px)",
+          boxShadow: isDarkMode ? "0 20px 40px rgba(0,0,0,0.3)" : "0 20px 40px rgba(0,0,0,0.15)",
+          "& .course-thumbnail": {
+            transform: "scale(1.05)",
           },
-          borderRadius: 3,
-          overflow: "hidden",
-          border: "1px solid",
-          borderColor: isDarkMode ? "rgba(255, 255, 255, 0.1)" : "divider",
-          background: isDarkMode ? "rgba(30, 41, 59, 0.9)" : "rgba(255, 255, 255, 0.9)",
-          backdropFilter: "blur(20px)",
-        }}
-        onClick={() => handleCourseClick(course.id)}
-      >
-        <Box sx={{ position: "relative", overflow: "hidden" }}>
-          <CardMedia
-            className="course-thumbnail"
-            component="img"
-            height="200"
-            image={
-              course.thumbnail ||
-              `https://via.placeholder.com/400x200/667eea/ffffff?text=${encodeURIComponent(course.title)}`
-            }
-            alt={course.title}
-            sx={{
-              transition: "transform 0.3s ease",
-              objectFit: "cover",
-            }}
-          />
+          "& .play-button": {
+            opacity: 1,
+            transform: "scale(1)",
+          },
+        },
+        borderRadius: 3,
+        overflow: "hidden",
+        border: "1px solid",
+        borderColor: isDarkMode ? "rgba(255, 255, 255, 0.1)" : "divider",
+        background: isDarkMode ? "rgba(30, 41, 59, 0.9)" : "rgba(255, 255, 255, 0.9)",
+        backdropFilter: "blur(20px)",
+      }}
+      onClick={() => handleCourseClick(course.id)}
+    >
+      <Box sx={{ position: "relative", overflow: "hidden" }}>
+        <CardMedia
+          className="course-thumbnail"
+          component="img"
+          height="200"
+          image={
+            course.thumbnail ||
+            `https://via.placeholder.com/400x200/667eea/ffffff?text=${encodeURIComponent(course.title)}`
+          }
+          alt={course.title}
+          sx={{
+            transition: "transform 0.3s ease",
+            objectFit: "cover",
+          }}
+        />
 
-          <Box
-            className="play-button"
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%) scale(0.8)",
-              opacity: 0,
-              transition: "all 0.3s ease",
-              bgcolor: "rgba(0,0,0,0.7)",
-              borderRadius: "50%",
-              width: 60,
-              height: 60,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <PlayIcon sx={{ color: "white", fontSize: 32, ml: 0.5 }} />
-          </Box>
-
-          <Chip
-            label={course.Category?.name || "Chưa phân loại"}
-            size="small"
-            sx={{
-              position: "absolute",
-              top: 12,
-              left: 12,
-              bgcolor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.9)",
-              backdropFilter: "blur(10px)",
-              fontWeight: 600,
-              fontSize: "0.75rem",
-              color: isDarkMode ? "white" : "text.primary",
-            }}
-          />
+        <Box
+          className="play-button"
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%) scale(0.8)",
+            opacity: 0,
+            transition: "all 0.3s ease",
+            bgcolor: "rgba(0,0,0,0.7)",
+            borderRadius: "50%",
+            width: 60,
+            height: 60,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <PlayIcon sx={{ color: "white", fontSize: 32, ml: 0.5 }} />
         </Box>
 
-        <CardContent sx={{ flexGrow: 1, p: 3 }}>
-          <Typography
-            variant="h6"
-            gutterBottom
-            sx={{
-              fontWeight: 700,
-              color: "text.primary",
-              lineHeight: 1.3,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              minHeight: "2.6em",
-            }}
-          >
-            {course.title}
-          </Typography>
+        <Chip
+          label={course.Category?.name || "Chưa phân loại"}
+          size="small"
+          sx={{
+            position: "absolute",
+            top: 12,
+            left: 12,
+            bgcolor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.9)",
+            backdropFilter: "blur(10px)",
+            fontWeight: 600,
+            fontSize: "0.75rem",
+            color: isDarkMode ? "white" : "text.primary",
+          }}
+        />
+      </Box>
 
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              lineHeight: 1.6,
-              display: "-webkit-box",
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              minHeight: "4.8em",
-              mb: 2,
-            }}
-          >
-            {course.description || "Khám phá nội dung thú vị trong khóa học này"}
-          </Typography>
+      <CardContent sx={{ flexGrow: 1, p: 3 }}>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{
+            fontWeight: 700,
+            color: "text.primary",
+            lineHeight: 1.3,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            minHeight: "2.6em",
+          }}
+        >
+          {course.title}
+        </Typography>
 
-          <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <AccessTime sx={{ fontSize: 16, color: "text.secondary" }} />
-              <Typography variant="caption" color="text.secondary">
-                {course.lessonCount} bài học
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <Person sx={{ fontSize: 16, color: "text.secondary" }} />
-              <Typography variant="caption" color="text.secondary">
-                {course.enrolledUsers} học viên
-              </Typography>
-            </Box>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            lineHeight: 1.6,
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            minHeight: "4.8em",
+            mb: 2,
+          }}
+        >
+          {course.description || "Khám phá nội dung thú vị trong khóa học này"}
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <AccessTime sx={{ fontSize: 16, color: "text.secondary" }} />
+            <Typography variant="caption" color="text.secondary">
+              {course.lessonCount} bài học
+            </Typography>
           </Box>
-        </CardContent>
-
-        <Box sx={{ p: 3, pt: 0 }}>
-          <Button
-            variant="contained"
-            fullWidth
-            startIcon={<PlayIcon />}
-            sx={{
-              py: 1.5,
-              fontWeight: 600,
-              borderRadius: 2,
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)",
-                transform: "translateY(-2px)",
-                boxShadow: "0 8px 25px rgba(102, 126, 234, 0.4)",
-              },
-              transition: "all 0.3s ease",
-            }}
-          >
-            Bắt đầu học
-          </Button>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <AccessTime sx={{ fontSize: 16, color: "text.secondary" }} />
+            <Typography variant="caption" color="text.secondary">
+              Tổng thời lượng: {course.totalDuration}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Person sx={{ fontSize: 16, color: "text.secondary" }} />
+            <Typography variant="caption" color="text.secondary">
+              {course.enrolledUsers} học viên
+            </Typography>
+          </Box>
         </Box>
-      </Card>
-    </Fade>
-  );
+      </CardContent>
+
+      <Box sx={{ p: 3, pt: 0 }}>
+        <Button
+          variant="contained"
+          fullWidth
+          startIcon={<PlayIcon />}
+          sx={{
+            py: 1.5,
+            fontWeight: 600,
+            borderRadius: 2,
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)",
+              transform: "translateY(-2px)",
+              boxShadow: "0 8px 25px rgba(102, 126, 234, 0.4)",
+            },
+            transition: "all 0.3s ease",
+          }}
+        >
+          Bắt đầu học
+        </Button>
+      </Box>
+    </Card>
+  </Fade>
+);
 
   // Gradient nền cho toàn bộ trang
-  const backgroundGradient = isDarkMode 
+  const backgroundGradient = isDarkMode
     ? 'linear-gradient(135deg, #0f1419 0%, #1a202c 100%)'
     : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)';
 
@@ -348,7 +396,7 @@ const CourseListStudent = () => {
               Tìm kiếm và tham gia các khóa học phù hợp với nhu cầu học tập của bạn
             </Typography>
           </Box>
-      
+
           {/* Render the UserMenu component */}
           <UserMenu />
         </Box>
