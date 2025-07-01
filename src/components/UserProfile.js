@@ -18,6 +18,7 @@ import { Person, Email, UploadFile } from "@mui/icons-material";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
+import NotesTab from "../components/NotesTab"; // Import NotesTab
 
 const UserProfile = () => {
   const [profile, setProfile] = useState({
@@ -34,7 +35,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [progressHistory, setProgressHistory] = useState([]);
-  const [previewAvatar, setPreviewAvatar] = useState(null); // Thêm state cho preview avatar
+  const [previewAvatar, setPreviewAvatar] = useState(null); // State cho preview avatar
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
 
@@ -238,6 +239,7 @@ const UserProfile = () => {
             >
               <Tab label="Thông tin" />
               <Tab label="Lịch sử học tập" />
+              <Tab label="Ghi chú" /> {/* Thêm tab Ghi chú */}
             </Tabs>
 
             {tabValue === 0 && (
@@ -357,7 +359,7 @@ const UserProfile = () => {
                       </InputAdornment>
                     ),
                   }}
-                  inputProps={{ accept: "image/jpeg,image/jpg,image/png" }} // Chỉ chấp nhận các định dạng hình ảnh
+                  inputProps={{ accept: "image/jpeg,image/jpg,image/png" }}
                   sx={{ mb: 4 }}
                 />
 
@@ -465,9 +467,7 @@ const UserProfile = () => {
                 </Box>
 
                 {progressHistory.length > 0 ? (
-                  <Box
-                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-                  >
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                     {progressHistory.map((prog, index) => (
                       <Box
                         key={prog.id}
@@ -481,7 +481,8 @@ const UserProfile = () => {
                           boxShadow: isDarkMode
                             ? "0 8px 32px rgba(0, 0, 0, 0.3)"
                             : "0 8px 32px rgba(0, 0, 0, 0.08)",
-                          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                          transition:
+                            "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                           overflow: "hidden",
                           "&:hover": {
                             transform: "translateY(-4px)",
@@ -653,13 +654,14 @@ const UserProfile = () => {
                                   }}
                                 >
                                   Hoàn thành:{" "}
-                                  {new Date(
-                                    prog.completed_at
-                                  ).toLocaleDateString("vi-VN", {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  })}
+                                  {new Date(prog.completed_at).toLocaleDateString(
+                                    "vi-VN",
+                                    {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                    }
+                                  )}
                                 </Typography>
                               </Box>
                             )}
@@ -724,6 +726,14 @@ const UserProfile = () => {
                   </Box>
                 )}
               </Box>
+            )}
+
+            {tabValue === 2 && (
+              <NotesTab
+                progressHistory={progressHistory}
+                fetchNotesCallback={fetchProgressHistory} // Có thể dùng fetchProgressHistory nếu muốn đồng bộ
+                isDarkMode={isDarkMode} // Truyền theme
+              />
             )}
           </Paper>
         </Fade>
