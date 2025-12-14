@@ -1,70 +1,208 @@
-# Getting Started with Create React App
+🌐 HỆ THỐNG HỌC TẬP TRỰC TUYẾN
+Online Learning Platform
+📌 Tóm Tắt Dự Án (Project Overview)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Hệ thống học tập trực tuyến (Online Learning Platform) được xây dựng nhằm cung cấp một môi trường E-Learning hiện đại và hiệu quả, cho phép người dùng:
 
-## Available Scripts
+Khám phá khóa học
 
-In the project directory, you can run:
+Đăng ký và tham gia học tập
 
-### `npm start`
+Theo dõi tiến độ học tập theo từng bài học
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Hệ thống được quản lý tập trung bởi Admin, đảm bảo chất lượng nội dung và quản lý người dùng chặt chẽ.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+✨ Phạm Vi Chức Năng (Scope & Features)
 
-### `npm test`
+Dự án được chia thành hai phân hệ chính:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+🔐 Admin (Quản trị viên)
 
-### `npm run build`
+👩‍🎓 User (Người dùng)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+🔐 1. Chức Năng Cho Admin (Quản Trị Viên)
+1.1 Đăng Nhập Quản Trị
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Giao diện đăng nhập riêng biệt cho Admin
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Xác thực bằng username/password
 
-### `npm run eject`
+Áp dụng Session Timeout để tăng cường bảo mật
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1.2 Quản Lý Người Dùng
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Xem danh sách học viên
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Khoá / Mở khoá tài khoản
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Reset mật khẩu
 
-## Learn More
+Xoá tài khoản người dùng
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1.3 Quản Lý Danh Mục (Category)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Tạo / Sửa / Xoá danh mục môn học
 
-### Code Splitting
+Danh mục được hiển thị cho người dùng lọc khóa học
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1.4 Quản Lý Khoá Học
 
-### Analyzing the Bundle Size
+Tạo / Sửa / Xoá khóa học
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Mỗi khóa học bao gồm:
 
-### Making a Progressive Web App
+Tên môn học
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Mô tả ngắn
 
-### Advanced Configuration
+Ảnh đại diện
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Danh mục
 
-### Deployment
+Trạng thái (Hoạt động / Ẩn)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+1.5 Quản Lý Nội Dung Khoá Học
 
-### `npm run build` fails to minify
+Xây dựng cấu trúc học tập phân cấp:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Course
+ └── Chapter
+      └── Video Lesson
+
+👩‍🎓 2. Chức Năng Cho Người Dùng (User)
+2.1 Xác Thực Tài Khoản
+
+Đăng ký
+
+Đăng nhập
+
+Quên mật khẩu (qua Email)
+
+Đăng xuất
+
+2.2 Quản Lý Thông Tin Cá Nhân
+
+Xem thông tin cá nhân
+
+Cập nhật hồ sơ
+
+Thay đổi mật khẩu
+
+2.3 Khám Phá Khoá Học
+
+Hiển thị danh sách khóa học
+
+Lọc theo danh mục
+
+Tìm kiếm theo từ khoá
+
+2.4 Xem & Học Khoá Học
+
+Giao diện phòng học tích hợp video bài giảng
+
+Hiển thị danh sách chương và bài học
+
+Theo dõi trạng thái:
+
+✅ Đã học
+
+⏳ Chưa học
+
+2.5 Tương Tác
+
+Đánh giá sao (Rating) cho bài học
+
+Bình luận (Comment) dưới mỗi bài học
+
+🛠️ Công Nghệ Sử Dụng (Tech Stack)
+Front-end
+
+ReactJS / Next.js
+
+Xây dựng giao diện SPA / SSR
+
+Back-end
+
+Node.js (Express) / Django
+
+RESTful API cho Admin & User
+
+Database
+
+PostgreSQL / MySQL
+
+Lưu trữ dữ liệu người dùng, khóa học và tiến độ học
+
+Media / Storage
+
+AWS S3 / Cloudinary
+
+Lưu trữ video bài học và ảnh đại diện
+
+Authentication
+
+JWT (JSON Web Token)
+
+Bảo mật xác thực và phiên làm việc
+
+🚀 Hướng Dẫn Cài Đặt & Vận Hành (Getting Started)
+📋 Điều Kiện Tiên Quyết
+
+Node.js v16+
+
+npm hoặc yarn
+
+PostgreSQL / MySQL đang hoạt động
+
+⚙️ Thiết Lập Dự Án
+1. Clone Repository
+git clone <repository-url>
+cd <project-folder>
+
+2. Cài Đặt Dependencies
+# Front-end
+cd client
+npm install
+
+# Back-end
+cd ../server
+npm install
+
+3. Cấu Hình Biến Môi Trường (.env)
+PORT=5000
+DATABASE_URL=your_database_url
+JWT_SECRET=your_jwt_secret
+EMAIL_SERVICE_CONFIG=your_smtp_config
+
+▶️ Chạy Ứng Dụng
+Chạy Back-end
+cd server
+npm run dev
+
+
+Server chạy tại:
+
+http://localhost:5000
+
+Chạy Front-end
+cd client
+npm run dev
+
+
+Client chạy tại:
+
+http://localhost:3000
+
+🔗 Liên Kết Trực Tiếp (Live Links)
+
+🌍 Demo Website (User): [Live Demo]
+
+🛠️ Admin Panel: [Admin Demo]
+
+🤝 Tác Giả & Đóng Góp (Author & Contribution)
+
+Tác giả: [Tên của bạn]
+
+GitHub: @username
+
+Email: your-email@example.com
